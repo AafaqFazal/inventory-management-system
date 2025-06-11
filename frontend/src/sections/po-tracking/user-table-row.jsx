@@ -1,0 +1,169 @@
+// new
+
+import { useState } from 'react';
+import PropTypes from 'prop-types';
+
+import Popover from '@mui/material/Popover';
+import TableRow from '@mui/material/TableRow';
+import Checkbox from '@mui/material/Checkbox';
+import MenuItem from '@mui/material/MenuItem';
+import TableCell from '@mui/material/TableCell';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+
+// eslint-disable-next-line import/no-unresolved
+import Iconify from 'src/components/iconify';
+
+import DeleteConfirmationModal from './view/deleteModel'; // Import the delete modal
+// import warehouseIds from '../super-admin-dashboard/view/superAdminDashboard';
+
+// ----------------------------------------------------------------------
+
+export default function UserTableRow({
+  id,
+  row,
+  selected,
+  itemCode,
+  brand,
+  supplierName,
+  scheme,
+  poQty,
+  receivedPoQty, // Fixed typo
+  remainingQty,
+  unit,
+  warehouseId,
+  description,
+  isActive,
+  createdBy,
+  createdAt,
+  handleClick,
+  onEdit,
+  onDelete,
+}) {
+  const [open, setOpen] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // State to manage delete modal visibility
+
+  const handleOpenMenu = (event) => {
+    setOpen(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setOpen(null);
+  };
+
+  const handleOpenEditModal = () => {
+    onEdit({
+      id,
+      itemCode,
+      brand,
+      scheme,
+      poQty,
+      receivedPoQty, // Fixed typo
+      remainingQty,
+      unit,
+      warehouseId,
+      description,
+      supplierName,
+      isActive,
+      createdBy,
+    });
+    setOpen(null); // Close the menu after opening the edit modal
+  };
+  console.log(warehouseId);
+  const handleOpenDeleteModal = () => {
+    setDeleteModalOpen(true);
+    handleCloseMenu(); // Close the menu when delete is clicked
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+  };
+
+  const handleProceedDelete = () => {
+    onDelete(id); // Pass the id when deleting
+    setDeleteModalOpen(false); // Close the modal after confirming delete
+  };
+  const role = sessionStorage.getItem('role') || '';
+  const isManager = role.trim().toUpperCase() === 'MANAGER';
+
+  // ✅ Load warehouseIds from sessionStorage
+  const warehouseIds = JSON.parse(sessionStorage.getItem('warehouseIds') || '[]');
+
+  // Show the row only if it matches the role filter
+  // const shouldShowRow =
+  //   role === 'SUPER_ADMIN' ||
+  //   (role === 'MANAGER' &&
+  //     warehouseIds.includes(String(row.warehouseId?._id || row.warehouseId))) ||
+  //   (role === 'WAREHOUSE_USER' &&
+  //     String(row.warehouseId?._id) === sessionStorage.getItem('warehouseId'));
+
+  // if (!shouldShowRow) {
+  //   return null; // Don't render this row if it doesn't match
+  // }
+
+  return (
+    <>
+      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
+        <TableCell padding="checkbox">
+          {/* <Checkbox disableRipple checked={selected} onChange={handleClick} /> */}
+        </TableCell>
+
+        <TableCell>{itemCode}</TableCell>
+        <TableCell>{description}</TableCell>
+        <TableCell>{unit}</TableCell>
+        <TableCell>{supplierName}</TableCell>
+        <TableCell>{brand}</TableCell>
+        <TableCell>{scheme}</TableCell>
+        <TableCell>{poQty}</TableCell>
+        <TableCell>{receivedPoQty}</TableCell>
+        <TableCell>{remainingQty}</TableCell>
+
+        <TableCell align="right">
+          <IconButton onClick={handleOpenMenu}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+
+      <Popover open={!!open} anchorEl={open} onClose={handleCloseMenu}>
+        <MenuItem onClick={handleOpenEditModal}>
+          <Iconify icon="solar:pen-bold" sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        <MenuItem onClick={handleOpenDeleteModal} sx={{ color: 'error.main' }}>
+          <Iconify icon="solar:trash-bin-trash-bold" sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
+      </Popover>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={deleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onProceed={handleProceedDelete}
+      />
+    </>
+  );
+}
+
+UserTableRow.propTypes = {
+  id: PropTypes.string.isRequired,
+  selected: PropTypes.bool,
+  itemCode: PropTypes.string,
+  brand: PropTypes.string,
+  supplierName: PropTypes.string,
+  poQty: PropTypes.string,
+  receivedPoQty: PropTypes.string, // Fixed typo
+  remainingQty: PropTypes.string,
+  unit: PropTypes.string,
+  scheme: PropTypes.string,
+  description: PropTypes.string.isRequired,
+  isActive: PropTypes.bool.isRequired,
+  createdBy: PropTypes.string.isRequired,
+  createdAt: PropTypes.string.isRequired,
+  row: PropTypes.object,
+  handleClick: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  warehouseId: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+};
