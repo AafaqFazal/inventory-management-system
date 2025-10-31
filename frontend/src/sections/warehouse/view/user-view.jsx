@@ -213,20 +213,13 @@ export default function WarehousePage() {
   const notFound = !dataFiltered.length && !!filterName;
 
   return (
-    <Container >
+    <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
         <Typography variant="h4">Warehouses</Typography>
         {role !== 'MANAGER' && role !== 'WAREHOUSE_USER' && (
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             startIcon={<Iconify icon="eva:plus-fill" />}
             onClick={handleOpenAddModal}
           >

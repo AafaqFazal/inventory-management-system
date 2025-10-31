@@ -48,7 +48,11 @@ export function applyFilter({ inputData, comparator, filterName }) {
 
   if (filterName) {
     inputData = inputData.filter(
-      (user) => user.fullName.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+      (material) =>
+        (material.name && material.name.toLowerCase().includes(filterName.toLowerCase())) ||
+        (material.code && material.code.toLowerCase().includes(filterName.toLowerCase())) ||
+        (material.description &&
+          material.description.toLowerCase().includes(filterName.toLowerCase()))
     );
   }
 

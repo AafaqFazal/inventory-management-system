@@ -149,7 +149,7 @@ export default function LoginView() {
             fullWidth
             size="large"
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             loading={loading}
             onClick={handleLogin}
           >

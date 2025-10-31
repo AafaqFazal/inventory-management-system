@@ -44,6 +44,7 @@ const AddMaterialModal = ({ open, onClose }) => {
   });
   const department = sessionStorage.getItem('department');
   const isPO = department === 'Telecom';
+  const isElectrical = department === 'Electrical'; // Check if department is Electrical
 
   const showSnackbar = (message, severity) => {
     setSnackbar({ open: true, message, severity });
@@ -118,7 +119,10 @@ const AddMaterialModal = ({ open, onClose }) => {
   const validateForm = () => {
     const newErrors = {};
     if (!formValues.code) newErrors.code = 'Code is required';
-    if (!formValues.name) newErrors.name = 'Name is required';
+
+    // Only validate name if department is not Electrical
+    if (!isElectrical && !formValues.name) newErrors.name = 'Name is required';
+
     if (!formValues.warehouseId && sessionStorage.getItem('role') !== 'SUPER_ADMIN') {
       newErrors.warehouseId = 'Warehouse is required';
     }
@@ -138,6 +142,11 @@ const AddMaterialModal = ({ open, onClose }) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    // If department is Electrical, add static value for name
+    if (isElectrical) {
+      payload.name = 'Electrical Material'; // Static name for Electrical department
+    }
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_APP_URL}/api/materials`, payload);
@@ -182,11 +191,13 @@ const AddMaterialModal = ({ open, onClose }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>Add Material</DialogTitle>
+        <DialogTitle bgcolor="black" color="white">
+          Add Material
+        </DialogTitle>
         <DialogContent>
           <Box>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label={isPO ? 'Material Code' : 'Code'}
@@ -199,20 +210,23 @@ const AddMaterialModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={isPO ? 'Brand' : 'Name'}
-                  name="name"
-                  value={formValues.name}
-                  onChange={handleChange}
-                  margin="normal"
-                  error={!!errors.name}
-                  helperText={errors.name}
-                />
-              </Grid>
+              {/* Conditionally render Name field only if not Electrical department */}
+              {!isElectrical && (
+                <Grid item xs={12} md={12}>
+                  <TextField
+                    fullWidth
+                    label={isPO ? 'Brand' : 'Name'}
+                    name="name"
+                    value={formValues.name}
+                    onChange={handleChange}
+                    margin="normal"
+                    error={!!errors.name}
+                    helperText={errors.name}
+                  />
+                </Grid>
+              )}
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth sx={{ marginTop: '15px' }}>
                   <InputLabel id="warehouse-label">Warehouses</InputLabel>
                   <Select
@@ -229,7 +243,7 @@ const AddMaterialModal = ({ open, onClose }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth sx={{ marginTop: '15px' }}>
                   <InputLabel id="isActive-label">Status</InputLabel>
                   <Select
@@ -265,21 +279,18 @@ const AddMaterialModal = ({ open, onClose }) => {
           <Button
             onClick={handleCloseAddModal}
             sx={{
-              backgroundColor: 'black',
-              color: 'white',
-              '&:hover': { backgroundColor: '#333' },
+              backgroundColor: 'grey',
             }}
+            variant="contained"
           >
             Cancel
           </Button>
           <Button
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             onClick={handleSubmit}
             disabled={loading}
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': { backgroundColor: '#00288C' },
-            }}
+            variant="contained"
+            color="primary"
           >
             Add
           </Button>

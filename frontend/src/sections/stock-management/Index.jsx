@@ -1,20 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { DataGrid } from '@mui/x-data-grid';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import {
   Box,
   Chip,
+  Grid,
   Paper,
   Alert,
   Select,
   Button,
+  Dialog,
   MenuItem,
   Snackbar,
   TextField,
   Typography,
   IconButton,
+  DialogTitle,
   Autocomplete,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 
 import StockInModal from './StockInModel';
@@ -22,6 +27,7 @@ import StockOutModal from './StockOutModel';
 import RemainingStockReport from './RemainingStockModel';
 
 export default function MaterialManagement() {
+  const [modalMaterialData, setModalMaterialData] = useState({});
   const [selectedScheme, setSelectedScheme] = useState(null);
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
@@ -32,6 +38,7 @@ export default function MaterialManagement() {
   const [schemes, setSchemes] = useState([]); // Filtered schemes
   const [allMaterials, setAllMaterials] = useState([]); // Store all materials
   const [materials, setMaterials] = useState([]); // Filtered materials
+  const [availableMaterials, setAvailableMaterials] = useState([]); // Materials not in rows
   const [rows, setRows] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -50,6 +57,201 @@ export default function MaterialManagement() {
   const warehouseId = sessionStorage.getItem('warehouseId');
   const userRole = sessionStorage.getItem('role');
   const departmentId = sessionStorage.getItem('departmentId');
+  // new field added
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Edit modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingRow, setEditingRow] = useState(null);
+  const [editMaterialQty, setEditMaterialQty] = useState(0);
+  const [editUnit, setEditUnit] = useState('');
+  const [editType, setEditType] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+
+  // Get the selected department name from the dropdown
+  const selectedDepartmentName =
+    departments.find((dep) => dep._id === selectedDepartment)?.name || '';
+  const isElectrical = selectedDepartmentName === 'Electrical'; // Check if selected department is Electrical
+  const isTelecom = selectedDepartmentName === 'Telecom'; // Check if selected department is Telecom
+
+  const handleOpenEditModal = (row) => {
+    setEditingRow(row);
+    setEditMaterialQty(row.materialQty || 0);
+    setEditUnit(row.unit || '');
+    setEditType(row.type || '');
+    setEditNotes(row.notes || '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingRow(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRow) return;
+
+    try {
+      const apiUrl = import.meta.env.VITE_APP_URL;
+
+      // Prepare the update data
+      const updateData = {
+        materialQty: editMaterialQty,
+        unit: editUnit,
+        type: editType,
+        notes: editNotes,
+      };
+
+      // For Electrical department, use static values for type and notes
+      if (isElectrical) {
+        updateData.type = 'Electrical Type'; // Static value for Electrical department
+        updateData.notes = 'Electrical Notes'; // Static value for Electrical department
+      }
+
+      // If the row exists in the database (has _id), update it via API
+      if (editingRow._id) {
+        const response = await fetch(`${apiUrl}/api/schemeMaterialMapping/${editingRow._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to update the row in the database');
+        }
+
+        // Update local state with the response data
+        const updatedRow = await response.json();
+
+        const updatedRows = rows.map((row) => {
+          if (row.id === editingRow.id) {
+            return {
+              ...row,
+              materialQty: updatedRow.materialQty,
+              unit: updatedRow.unit,
+              type: updatedRow.type,
+              notes: updatedRow.notes,
+            };
+          }
+          return row;
+        });
+
+        setRows(updatedRows);
+        showSnackbar('Row updated successfully!', 'success');
+      } else {
+        // If it's a local row (no _id), just update the local state
+        const updatedRows = rows.map((row) => {
+          if (row.id === editingRow.id) {
+            return {
+              ...row,
+              materialQty: editMaterialQty,
+              unit: editUnit,
+              type: isElectrical ? 'Electrical Type' : editType, // Use static value for Electrical
+              notes: isElectrical ? 'Electrical Notes' : editNotes, // Use static value for Electrical
+            };
+          }
+          return row;
+        });
+
+        setRows(updatedRows);
+        showSnackbar('Row updated successfully!', 'success');
+      }
+
+      handleCloseEditModal();
+    } catch (error) {
+      console.error('Error updating row:', error);
+      showSnackbar(error.message || 'Error updating row. Please try again.', 'error');
+    }
+  };
+
+  const updateMaterialData = (materialId, field, value) => {
+    setModalMaterialData((prev) => ({
+      ...prev,
+      [materialId]: {
+        ...prev[materialId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleOpenAddModal = () => {
+    if (!selectedScheme) {
+      alert('Please select a scheme first.');
+      return;
+    }
+
+    if (selectedMaterials.length === 0) {
+      alert('Please select at least one material.');
+      return;
+    }
+
+    // Initialize data for each selected material
+    const initialData = {};
+    selectedMaterials.forEach((material) => {
+      initialData[material._id] = {
+        materialQty: 0,
+        unit: isTelecom ? 'Piece' : '', // Default value for Telecom
+        type: isElectrical ? 'Electrical Type' : '', // Static value for Electrical
+        notes: isElectrical ? 'Electrical Notes' : '', // Static value for Electrical
+      };
+    });
+
+    setModalMaterialData(initialData);
+    setIsAddModalOpen(true);
+  };
+
+  // Function to handle closing the add modal
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+  };
+
+  // Function to handle adding items from the modal
+  const handleAddFromModal = () => {
+    // Validate that all required fields are filled
+    const isValid = selectedMaterials.every((material) => {
+      const data = modalMaterialData[material._id];
+      return data && data.materialQty > 0 && data.unit && (isElectrical ? true : data.type);
+    });
+
+    if (!isValid) {
+      alert('Please fill all required fields for all materials.');
+      return;
+    }
+
+    const newRows = selectedMaterials.map((material) => ({
+      id: material._id || material.id,
+      schemeName: selectedScheme.code,
+      materialCode: material.code,
+      materialName: material.name || 'N/A',
+      description: material.description,
+      materialQty: modalMaterialData[material._id].materialQty,
+      unit: modalMaterialData[material._id].unit,
+      type: modalMaterialData[material._id].type,
+      notes: modalMaterialData[material._id].notes,
+    }));
+
+    setRows([...rows, ...newRows]);
+    setSelectedMaterials([]);
+    setModalMaterialData({});
+    setIsAddModalOpen(false);
+  };
+
+  // Function to filter available materials (not in rows)
+  const updateAvailableMaterials = useCallback(() => {
+    const usedMaterialIds = rows.map((row) => row.materialCode); // Get material codes from rows
+    const filteredMaterials = materials.filter(
+      (material) => !usedMaterialIds.includes(material.code)
+    );
+    setAvailableMaterials(filteredMaterials);
+  }, [rows, materials]);
+
+  // Update available materials whenever rows or materials change
+  useEffect(() => {
+    updateAvailableMaterials();
+  }, [updateAvailableMaterials]);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -81,7 +283,6 @@ export default function MaterialManagement() {
   }, [userRole, departmentId]);
 
   // Fetch warehouses from the API when the component mounts
-
   useEffect(() => {
     const fetchWarehouses = async () => {
       const apiUrl = import.meta.env.VITE_APP_URL;
@@ -152,6 +353,9 @@ export default function MaterialManagement() {
     );
     setWarehouses(filteredWarehouses);
     setSelectedWarehouse(''); // Reset selected warehouse when department changes
+    setSelectedScheme(null); // Reset selected scheme
+    setSelectedMaterials([]); // Reset selected materials
+    setRows([]); // Reset rows
   };
 
   useEffect(() => {
@@ -160,11 +364,13 @@ export default function MaterialManagement() {
     setIsReadOnly(!!readOnlyPolicy);
   }, []);
 
-  const department = sessionStorage.getItem('department');
   const selDepartment = departments.find((dep) => dep._id === selectedDepartment)?.name || '';
   const isPONumber =
-    ((userRole === 'WAREHOUSE_USER' || userRole === 'MANAGER') && department === 'Telecom') ||
+    ((userRole === 'WAREHOUSE_USER' || userRole === 'MANAGER') &&
+      selectedDepartmentName === 'Telecom') ||
     (userRole === 'SUPER_ADMIN' && selDepartment === 'Telecom');
+
+  // Update columns to remove editable properties and add edit icon
   const columns = [
     {
       field: 'schemeName',
@@ -173,73 +379,43 @@ export default function MaterialManagement() {
     },
     { field: 'materialCode', headerName: 'Material Code', width: 130 },
     { field: 'description', headerName: 'Description', width: 200 },
-    { field: 'materialName', headerName: 'Material Name', width: 130 },
+    // Conditionally show Material Name column only if not Electrical department
+    ...(isElectrical ? [] : [{ field: 'materialName', headerName: 'Material Name', width: 130 }]),
+    {
+      field: 'unit',
+      headerName: isElectrical ? 'UOM' : 'Unit', // UOM for Electrical, Unit for others
+      width: 130,
+    },
     {
       field: 'materialQty',
       headerName: 'P.Material Qty',
       width: 130,
-      editable: true,
-      editMode: 'cell',
     },
-    {
-      field: 'unit',
-      headerName: 'Unit',
-      width: 130,
-      editable: true,
-      type: isPONumber ? 'singleSelect' : 'string', // Use dropdown for SUPER_ADMIN with Telecom warehouse or Telecom users
-      valueOptions:
-        (userRole === 'SUPER_ADMIN' && selectedWarehouseDepartment === 'Telecom') || isPONumber
-          ? ['Piece', 'Pair']
-          : [], // Options for SUPER_ADMIN with Telecom warehouse or Telecom users
-      renderEditCell: (params) => {
-        if (
-          (userRole === 'SUPER_ADMIN' && selectedWarehouseDepartment === 'Telecom') ||
-          isPONumber
-        ) {
-          return (
-            <Select
-              fullWidth
-              value={params.value || ''}
-              onChange={(event) => {
-                params.api.setEditCellValue({
-                  id: params.id,
-                  field: params.field,
-                  value: event.target.value,
-                });
-              }}
-            >
-              <MenuItem value="Piece">Piece</MenuItem>
-              <MenuItem value="Pair">Pair</MenuItem>
-            </Select>
-          );
-        }
-        return (
-          <TextField
-            fullWidth
-            value={params.value || ''}
-            onChange={(event) => {
-              params.api.setEditCellValue({
-                id: params.id,
-                field: params.field,
-                value: event.target.value,
-              });
-            }}
-          />
-        );
-      },
-    },
-    { field: 'type', headerName: 'Type', width: 130, editable: true },
-    { field: 'notes', headerName: 'Notes', width: 130, editable: true },
+    // Conditionally show Type column only if not Electrical department
+    ...(isElectrical ? [] : [{ field: 'type', headerName: 'Type', width: 130 }]),
+    // Conditionally show Notes column only if not Electrical department
+    ...(isElectrical ? [] : [{ field: 'notes', headerName: 'Notes', width: 130 }]),
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 100,
-      renderCell: (params) =>
-        !isReadOnly && (
-          <IconButton onClick={() => handleDeleteRow(params.row.id)} color="error">
-            <DeleteIcon />
-          </IconButton>
-        ),
+      width: 120,
+      renderCell: (params) => (
+        <Box>
+          {!isReadOnly && (
+            <>
+              <IconButton
+                onClick={() => handleOpenEditModal(params.row)}
+                sx={{ color: 'rgb(74,115,15,0.9)' }}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton onClick={() => handleDeleteRow(params.row.id)} color="error">
+                <DeleteIcon />
+              </IconButton>
+            </>
+          )}
+        </Box>
+      ),
     },
   ];
 
@@ -317,6 +493,7 @@ export default function MaterialManagement() {
     // Clear selected scheme and materials when warehouse changes
     setSelectedScheme(null);
     setSelectedMaterials([]);
+    setRows([]);
 
     // Filter schemes based on the selected warehouse
     const filteredSchemes = allSchemes.filter(
@@ -331,18 +508,19 @@ export default function MaterialManagement() {
     setMaterials(filteredMaterials);
   };
 
-  // Handle scheme selection
-  const handleSchemeChange = async (event) => {
-    const newSelectedSchemeName = event.target.value.trim(); // Get the scheme name
-    console.log('Selected Scheme in Parent:', newSelectedSchemeName); // Debugging log
+  // Handle scheme selection - Updated for Autocomplete
+  const handleSchemeChange = async (event, newValue) => {
+    const selectedSchemeData = newValue; // newValue is the complete scheme object
+    setSelectedScheme(selectedSchemeData);
 
-    const selectedSchemeData = schemes.find((scheme) => scheme.code === newSelectedSchemeName);
-    setSelectedScheme(selectedSchemeData); // Store the entire scheme object if needed elsewhere
-
-    if (!newSelectedSchemeName) {
+    if (!selectedSchemeData) {
       setRows([]);
       return;
     }
+
+    const newSelectedSchemeName = selectedSchemeData.code;
+    console.log('Selected Scheme in Parent:', newSelectedSchemeName); // Debugging log
+
     const apiUrl = import.meta.env.VITE_APP_URL;
     try {
       const response = await fetch(
@@ -372,11 +550,6 @@ export default function MaterialManagement() {
       setRows([]);
     }
   };
-
-  // // Handle material selection
-  // const handleMaterialChange = (_, newValue) => {
-  //   setSelectedMaterials(newValue);
-  // };
 
   const handleOpenStockInModal = () => {
     setIsStockInModalOpen(true);
@@ -432,9 +605,9 @@ export default function MaterialManagement() {
       materialName: material.name || 'N/A',
       description: material.description,
       materialQty: 0,
-      unit: isPONumber ? 'Piece' : '',
-      type: '',
-      notes: '',
+      unit: isTelecom ? 'Piece' : '', // Default for Telecom
+      type: isElectrical ? 'Electrical Type' : '', // Static value for Electrical
+      notes: isElectrical ? 'Electrical Notes' : '', // Static value for Electrical
     }));
 
     setRows([...rows, ...newRows]);
@@ -474,28 +647,6 @@ export default function MaterialManagement() {
 
   const handleDeleteAll = () => {
     setRows([]);
-  };
-
-  const processRowUpdate = (newRow) => {
-    const updatedRows = rows.map((row) => {
-      if (row.id === newRow.id) {
-        const updateCount = (updateCounts[row.id] || 0) + 1;
-        setUpdateCounts((prevCounts) => ({
-          ...prevCounts,
-          [row.id]: updateCount,
-        }));
-
-        if (updateCount === 2) {
-          const updatedBy = sessionStorage.getItem('role');
-          return { ...newRow, updatedBy };
-        }
-        return newRow;
-      }
-      return row;
-    });
-
-    setRows(updatedRows);
-    return newRow;
   };
 
   const handleSchemeMapping = async () => {
@@ -565,6 +716,45 @@ export default function MaterialManagement() {
     }
   };
 
+  // Function to render unit/UOM dropdown based on department
+  const renderUnitDropdown = (value, onChange, required = true) => {
+    if (isTelecom) {
+      return (
+        <TextField
+          fullWidth
+          select
+          label="Unit"
+          value={value}
+          onChange={onChange}
+          required={required}
+        >
+          <MenuItem value="Piece">Piece</MenuItem>
+          <MenuItem value="Pair">Pair</MenuItem>
+        </TextField>
+      );
+    }
+
+    if (isElectrical) {
+      return (
+        <TextField
+          fullWidth
+          select
+          label="UOM"
+          value={value}
+          onChange={onChange}
+          required={required}
+        >
+          <MenuItem value="EA">EA</MenuItem>
+          <MenuItem value="Meter">Meter</MenuItem>
+        </TextField>
+      );
+    }
+
+    return (
+      <TextField fullWidth label="Unit" value={value} onChange={onChange} required={required} />
+    );
+  };
+
   return (
     <Box sx={{ maxWidth: '100%', paddingX: 2 }}>
       <Typography variant="h4" mb={4}>
@@ -608,20 +798,23 @@ export default function MaterialManagement() {
           </Box>
           <Box>
             <Typography sx={{ mb: 1 }}>{isPONumber ? 'PO' : 'Scheme'}</Typography>
-            <Select
+            <Autocomplete
               fullWidth
-              value={selectedScheme ? selectedScheme.code : ''} // Use the scheme name
+              options={schemes}
+              getOptionLabel={(option) => option.code}
+              value={selectedScheme}
               onChange={handleSchemeChange}
-              displayEmpty
               disabled={!selectedWarehouse} // Disable if no warehouse is selected
-            >
-              <MenuItem value="">Select {isPONumber ? 'PO' : 'Scheme'}</MenuItem>
-              {schemes.map((scheme) => (
-                <MenuItem key={scheme.id} value={scheme.code}>
-                  {scheme.code}
-                </MenuItem>
-              ))}
-            </Select>
+              renderInput={(params) => (
+                <TextField {...params} placeholder={`Select ${isPONumber ? 'PO' : 'Scheme'}`} />
+              )}
+              filterOptions={(options, { inputValue }) =>
+                options.filter((option) =>
+                  option.code.toLowerCase().includes(inputValue.toLowerCase())
+                )
+              }
+              isOptionEqualToValue={(option, value) => option._id === value?._id}
+            />
           </Box>
 
           <Box
@@ -636,7 +829,7 @@ export default function MaterialManagement() {
               fullWidth
               limitTags={2}
               multiple
-              options={materials}
+              options={availableMaterials} // Use filtered available materials
               getOptionLabel={(option) => `${option.code} - ${option.description}`}
               value={selectedMaterials}
               onChange={(_, newValue) => setSelectedMaterials(newValue)}
@@ -664,11 +857,22 @@ export default function MaterialManagement() {
                 },
               }}
               filterOptions={(options, { inputValue }) =>
-                options.filter((option) => option?.code || option?.description)
+                options.filter(
+                  (option) =>
+                    (option.code && option.code.toLowerCase().includes(inputValue.toLowerCase())) ||
+                    (option.description &&
+                      option.description.toLowerCase().includes(inputValue.toLowerCase()))
+                )
               }
               renderInput={(params) => <TextField {...params} label="Select Materials" fullWidth />}
               ListboxProps={{ sx: { maxWidth: '100%' } }}
               disabled={!selectedWarehouse}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              getOptionDisabled={(option) => {
+                // Disable materials that are already in rows
+                const usedMaterialIds = rows.map((row) => row.materialCode);
+                return usedMaterialIds.includes(option.code);
+              }}
             />
           </Box>
         </Box>
@@ -699,66 +903,69 @@ export default function MaterialManagement() {
           columns={columns}
           getRowId={(row) => row.id}
           autoHeight
-          processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={(error) => console.error(error)}
+          disableRowSelectionOnClick
+          sx={{
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: '#000000 !important',
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-columnHeader': {
+              backgroundColor: '#000000 !important',
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: '#ffffff !important',
+              fontWeight: 'bold',
+            },
+            '& .MuiDataGrid-columnHeaderTitleContainer': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-sortIcon': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-menuIconButton': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-filterIcon': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-iconButtonContainer': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-columnSeparator': {
+              color: '#ffffff !important',
+            },
+          }}
         />
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             onClick={handleSchemeMapping}
             disabled={isReadOnly || !selectedWarehouse} // Disable if no warehouse is selected
           >
             Save Scheme Mapping
           </Button>
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             onClick={handleOpenStockInModal}
             disabled={!selectedScheme || rows.length === 0}
           >
             Open Stock In
           </Button>
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             onClick={handleOpenStockOutModal}
             disabled={!selectedScheme || rows.length === 0}
           >
             Open Stock Out
           </Button>
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             onClick={handleOpenStockReportModal}
             disabled={!selectedScheme || rows.length === 0}
           >
@@ -767,16 +974,9 @@ export default function MaterialManagement() {
           {!isReadOnly && (
             <>
               <Button
-                sx={{
-                  backgroundColor: '#00284C',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: '#00288C',
-                  },
-                }}
                 variant="contained"
-                color="inherit"
-                onClick={handleAddItems}
+                sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+                onClick={handleOpenAddModal}
                 disabled={selectedMaterials.length === 0 || !selectedWarehouse} // Disable if no warehouse is selected
               >
                 Add
@@ -799,6 +999,259 @@ export default function MaterialManagement() {
           )}
         </Box>
       </Paper>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onClose={handleCloseEditModal} maxWidth="md" fullWidth>
+        <DialogTitle bgcolor="black" color="white">
+          Edit Material for {editingRow?.schemeName || (isPONumber ? 'PO' : 'Scheme')}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            {/* Non-editable fields */}
+            <Box
+              sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, bgcolor: '#f9f9f9' }}
+            >
+              <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                Material Details (Read-only)
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="body2">
+                    <strong>Code:</strong>
+                  </Typography>
+                  <Typography variant="body1" sx={{ p: 1, bgcolor: 'white', borderRadius: 1 }}>
+                    {editingRow?.materialCode || 'N/A'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2">
+                    <strong>Name:</strong>
+                  </Typography>
+                  <Typography variant="body1" sx={{ p: 1, bgcolor: 'white', borderRadius: 1 }}>
+                    {editingRow?.materialName || 'N/A'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2">
+                    <strong>Description:</strong>
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{ p: 1, bgcolor: 'white', borderRadius: 1, minHeight: '40px' }}
+                  >
+                    {editingRow?.description || 'No description'}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+
+            {/* Editable fields */}
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Material Quantity"
+                  type="number"
+                  value={editMaterialQty}
+                  onChange={(e) => setEditMaterialQty(Number(e.target.value))}
+                  inputProps={{ min: 1 }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                {renderUnitDropdown(editUnit, (e) => setEditUnit(e.target.value), true)}
+              </Grid>
+              {/* Conditionally show Type field only if not Electrical department */}
+              {!isElectrical && (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Type"
+                    value={editType}
+                    onChange={(e) => setEditType(e.target.value)}
+                    required
+                  />
+                </Grid>
+              )}
+              {/* Conditionally show Notes field only if not Electrical department */}
+              {!isElectrical && (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Notes"
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    multiline
+                    rows={3}
+                    placeholder="Optional notes..."
+                  />
+                </Grid>
+              )}
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button sx={{ background: 'grey' }} variant="contained" onClick={handleCloseEditModal}>
+            Cancel
+          </Button>
+          <Button
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+            variant="contained"
+            onClick={handleSaveEdit}
+          >
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Modal */}
+      <Dialog open={isAddModalOpen} onClose={handleCloseAddModal} maxWidth="md" fullWidth>
+        <DialogTitle bgcolor="black" color="white">
+          Add Materials to {selectedScheme?.code || (isPONumber ? 'PO' : 'Scheme')}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1" color="primary" gutterBottom>
+              Selected Materials ({selectedMaterials.length})
+            </Typography>
+
+            {selectedMaterials.map((material, index) => (
+              <Box
+                key={material._id}
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  border: '2px solid #e0e0e0',
+                  borderRadius: 2,
+                  bgcolor: index % 2 === 0 ? '#f9f9f9' : '#f5f5f5',
+                }}
+              >
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Material {index + 1} - Details (Read-only)
+                </Typography>
+
+                {/* Read-only material details */}
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.5,
+                    border: '1px solid #d0d0d0',
+                    borderRadius: 1,
+                    bgcolor: 'white',
+                  }}
+                >
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="body2">
+                        <strong>Code:</strong>
+                      </Typography>
+                      <Typography variant="body1">{material.code}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2">
+                        <strong>Name:</strong>
+                      </Typography>
+                      <Typography variant="body1">{material.name || 'N/A'}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2">
+                        <strong>Description:</strong>
+                      </Typography>
+                      <Typography variant="body1">
+                        {material.description || 'No description'}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Editable fields for this specific material */}
+                <Typography variant="subtitle2" color="primary" gutterBottom>
+                  Material {index + 1} - Configuration (Required)
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Material Quantity"
+                      type="number"
+                      value={modalMaterialData[material._id]?.materialQty || 0}
+                      onChange={(e) =>
+                        updateMaterialData(material._id, 'materialQty', Number(e.target.value))
+                      }
+                      inputProps={{ min: 1 }}
+                      required
+                      helperText={
+                        !modalMaterialData[material._id]?.materialQty ||
+                        modalMaterialData[material._id]?.materialQty <= 0
+                          ? 'Quantity is required and must be greater than 0'
+                          : ''
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    {renderUnitDropdown(
+                      modalMaterialData[material._id]?.unit || '',
+                      (e) => updateMaterialData(material._id, 'unit', e.target.value),
+                      true
+                    )}
+                  </Grid>
+                  {/* Conditionally show Type field only if not Electrical department */}
+                  {!isElectrical && (
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Type"
+                        value={modalMaterialData[material._id]?.type || ''}
+                        onChange={(e) => updateMaterialData(material._id, 'type', e.target.value)}
+                        required
+                        helperText={
+                          !modalMaterialData[material._id]?.type ? 'Type is required' : ''
+                        }
+                      />
+                    </Grid>
+                  )}
+                  {/* Conditionally show Notes field only if not Electrical department */}
+                  {!isElectrical && (
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Notes"
+                        value={modalMaterialData[material._id]?.notes || ''}
+                        onChange={(e) => updateMaterialData(material._id, 'notes', e.target.value)}
+                        multiline
+                        rows={2}
+                        placeholder="Optional notes for this material..."
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button sx={{ background: 'grey' }} variant="contained" onClick={handleCloseAddModal}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddFromModal}
+            variant="contained"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+            disabled={selectedMaterials.some((material) => {
+              const data = modalMaterialData[material._id];
+              return (
+                !data ||
+                !data.materialQty ||
+                data.materialQty <= 0 ||
+                !data.unit ||
+                (isElectrical ? false : !data.type) // Type is only required for non-Electrical
+              );
+            })}
+          >
+            Add All Materials to Grid
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

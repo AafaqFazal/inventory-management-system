@@ -284,7 +284,7 @@ export default function SignUpView() {
         fullWidth
         size="large"
         variant="contained"
-        color="inherit"
+        color="primary"
         loading={loading}
         onClick={handleSignUpWithEmail}
       >

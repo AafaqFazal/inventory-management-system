@@ -44,6 +44,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
   const role = sessionStorage.getItem('role');
   const department = sessionStorage.getItem('department');
   const isPONumber = (role === 'WAREHOUSE_USER' || role === 'MANAGER') && department === 'Telecom';
+  const isElectrical = department === 'Electrical'; // Check if department is Electrical
 
   const showSnackbar = (message, severity) => {
     setSnackbar({ open: true, message, severity });
@@ -119,8 +120,17 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
     const url = import.meta.env.VITE_APP_URL;
     const formData = new FormData();
     formData.append('code', formValues.code);
-    formData.append('name', formValues.name);
-    formData.append('description', formValues.description);
+
+    // Only append name and description if not Electrical department
+    if (!isElectrical) {
+      formData.append('name', formValues.name);
+      formData.append('description', formValues.description);
+    } else {
+      // For Electrical department, use static values
+      formData.append('name', 'Electrical Scheme');
+      formData.append('description', 'This is an electrical scheme');
+    }
+
     formData.append('isActive', formValues.isActive);
     formData.append('warehouseId', formValues.warehouseId);
 
@@ -151,11 +161,13 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{isPONumber ? 'Update PO Number' : 'Update Scheme'}</DialogTitle>
+      <DialogTitle bgcolor="black" color="white">
+        {isPONumber ? 'Update PO Number' : 'Update Scheme'}
+      </DialogTitle>
       <DialogContent>
         <Box>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label={isPONumber ? 'PO Code' : 'Code'}
@@ -166,17 +178,21 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={isPONumber ? 'PO Name' : 'Name'}
-                name="name"
-                value={formValues.name}
-                onChange={handleChange}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            {/* Conditionally render Name field only if not Electrical department */}
+            {!isElectrical && (
+              <Grid item xs={12} md={12}>
+                <TextField
+                  fullWidth
+                  label={isPONumber ? 'PO Name' : 'Name'}
+                  name="name"
+                  value={formValues.name}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+              </Grid>
+            )}
+
+            <Grid item xs={12} md={12}>
               <FormControl fullWidth sx={{ marginTop: '15px' }}>
                 <InputLabel id="warehouse-label">Warehouses</InputLabel>
                 <Select
@@ -199,7 +215,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <FormControl fullWidth sx={{ marginTop: '15px' }}>
                 <InputLabel id="isActive-label">Status</InputLabel>
                 <Select
@@ -218,45 +234,40 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                name="description"
-                value={formValues.description}
-                onChange={handleChange}
-                margin="normal"
-                multiline
-                rows={3}
-              />
-            </Grid>
+
+            {/* Conditionally render Description field only if not Electrical department */}
+            {!isElectrical && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  name="description"
+                  value={formValues.description}
+                  onChange={handleChange}
+                  margin="normal"
+                  multiline
+                  rows={3}
+                />
+              </Grid>
+            )}
           </Grid>
         </Box>
       </DialogContent>
       <DialogActions>
         <Button
           sx={{
-            backgroundColor: 'black',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#333333',
-            },
+            backgroundColor: 'grey',
           }}
           onClick={handleCancel}
-          color="secondary"
+          variant="contained"
         >
           Cancel
         </Button>
 
         <Button
           onClick={handleSubmit}
-          sx={{
-            backgroundColor: '#00284C',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#00288C',
-            },
-          }}
+          variant="contained"
+          sx={{ backgroundColor: 'rgb(74,115,15,0.9)' }}
         >
           Update
         </Button>

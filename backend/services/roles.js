@@ -63,6 +63,13 @@ const createRolesWithPolicies = async () => {
             Icon: "/assets/icons/navbar/stockreport.png",
             isActive: true,
           },
+          {
+            URL: "/material-report",
+            order: 9,
+            URL_Name: "Material Report",
+            Icon: "/assets/icons/navbar/material-icon.png",
+            isActive: true,
+          },
         ],
       },
       {
@@ -124,6 +131,13 @@ const createRolesWithPolicies = async () => {
             isActive: true,
             mode: "READ_ONLY",
           },
+          {
+            URL: "/material-report",
+            order: 8,
+            URL_Name: "Material Report",
+            Icon: "/assets/icons/navbar/material-icon.png",
+            isActive: true,
+          },
         ],
       },
       {
@@ -169,6 +183,13 @@ const createRolesWithPolicies = async () => {
             order: 6,
             URL_Name: "RWS PO's Tracking",
             Icon: "/assets/icons/navbar/potracking.png",
+            isActive: true,
+          },
+          {
+            URL: "/material-report",
+            order: 7,
+            URL_Name: "Material Report",
+            Icon: "/assets/icons/navbar/material-icon.png",
             isActive: true,
           },
         ],

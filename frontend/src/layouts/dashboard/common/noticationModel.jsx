@@ -119,78 +119,93 @@ export default function NotificationsModal({
     >
       <Box
         sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           maxWidth: 800,
-          Height: 1200,
-          mx: 'auto',
-          mt: 5,
+          width: '90%',
+          maxHeight: '80vh', // This makes the height responsive
+          overflow: 'auto', // Adds scroll if content exceeds maxHeight
           bgcolor: 'background.paper',
           borderRadius: 1,
           p: 3,
           boxShadow: 24,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Typography variant="h6" component="h2" gutterBottom>
           Notifications
         </Typography>
         <Divider sx={{ mb: 2 }} />
-        <List>
-          {notifications
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((notification) => (
-              <Box
-                key={notification._id}
-                sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}
-              >
-                <ListItemButton
-                  disabled={notification.status === 'read'} // Check "status" instead of "isRead"
-                  sx={{
-                    py: 1,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}
+
+        {/* Notification list with flexible height */}
+        <Box sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
+          <List>
+            {notifications
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((notification) => (
+                <Box
+                  key={notification._id}
+                  sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}
                 >
-                  <Box>
-                    <Typography variant="subtitle2">{notification.message}</Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      {formatDate(notification.date)} {/* Display formatted date */}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ ml: 2 }}
-                    onClick={() => handleMarkAsRead(notification._id)}
+                  <ListItemButton
+                    disabled={notification.status === 'read'} // Check "status" instead of "isRead"
+                    sx={{
+                      py: 1,
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}
                   >
-                    Mark as Read
-                  </Button>
-                </ListItemButton>
-                <Divider />
-              </Box>
-            ))}
-        </List>
-        <TablePagination
-          component="div"
-          count={notifications.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-          sx={{ mt: 2 }}
-        />
-        <Box
-          sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end', textAlign: 'right' }}
-        >
-          <Button variant="contained" onClick={onClose}>
-            Close
-          </Button>
-          {/* Conditionally render the "Mark all as Read" button */}
-          {hasUnreadNotifications && (
-            <Button variant="contained" onClick={markAllAsRead}>
-              Mark all as Read
+                    <Box>
+                      <Typography variant="subtitle2">{notification.message}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {formatDate(notification.date)} {/* Display formatted date */}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{ ml: 2, backgroundColor: 'rgb(7, 85, 162,1)' }}
+                      onClick={() => handleMarkAsRead(notification._id)}
+                    >
+                      Mark as Read
+                    </Button>
+                  </ListItemButton>
+                  <Divider />
+                </Box>
+              ))}
+          </List>
+        </Box>
+
+        {/* Pagination and buttons at the bottom */}
+        <Box sx={{ mt: 'auto' }}>
+          <TablePagination
+            component="div"
+            count={notifications.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', textAlign: 'right' }}>
+            <Button sx={{ backgroundColor: 'grey' }} variant="contained" onClick={onClose}>
+              Close
             </Button>
-          )}
+            {/* Conditionally render the "Mark all as Read" button */}
+            {hasUnreadNotifications && (
+              <Button
+                sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+                variant="contained"
+                onClick={markAllAsRead}
+              >
+                Mark all as Read
+              </Button>
+            )}
+          </Box>
         </Box>
       </Box>
     </Modal>

@@ -123,12 +123,14 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Update RWS PO Tracking</DialogTitle>
+      <DialogTitle bgcolor="black" color="white">
+        Update RWS PO Tracking
+      </DialogTitle>
       <DialogContent>
         <Box>
           <Grid container spacing={2}>
             {/* PO Number Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="PO"
@@ -141,7 +143,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Item Code"
@@ -154,7 +156,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Description"
@@ -167,7 +169,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Unit"
@@ -198,7 +200,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               </FormControl>
             </Grid> */}
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Supplier Name"
@@ -211,7 +213,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Brand"
@@ -224,7 +226,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="PO QTY"
@@ -237,7 +239,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Received QTY"
@@ -250,7 +252,7 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Remaining QTY"
@@ -269,21 +271,17 @@ const UpdateSchemeModal = ({ open, onClose, user, onUpdate }) => {
         <Button
           onClick={handleCancel}
           sx={{
-            backgroundColor: 'black',
-            color: 'white',
-            '&:hover': { backgroundColor: '#333' },
+            backgroundColor: 'Grey',
           }}
+          variant="contained"
         >
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          sx={{
-            backgroundColor: '#00284C',
-            color: 'white',
-            '&:hover': { backgroundColor: '#00288C' },
-          }}
+          variant="contained"
+          sx={{ backgroundColor: 'rgb(74,115,15,0.9)' }}
         >
           Update
         </Button>

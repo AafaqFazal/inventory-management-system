@@ -34,6 +34,7 @@ const UpdateMaterialModal = ({ open, onClose, user, onUpdate }) => {
   const [filteredWarehouses, setFilteredWarehouses] = useState([]); // Filtered warehouses based on user role
   const department = sessionStorage.getItem('department');
   const isPO = department === 'Telecom';
+  const isElectrical = department === 'Electrical'; // Check if department is Electrical
 
   // Fetch warehouses when the modal opens
   useEffect(() => {
@@ -120,6 +121,12 @@ const UpdateMaterialModal = ({ open, onClose, user, onUpdate }) => {
       isActive: formValues.isActive === 'true', // Convert string to boolean
       warehouseId: formValues.warehouseId,
     };
+
+    // If department is Electrical, use static value for name
+    if (isElectrical) {
+      payload.name = 'Electrical Material'; // Static name for Electrical department
+    }
+
     try {
       const response = await fetch(`${url}/api/materials/${formValues._id}`, {
         method: 'PUT',
@@ -165,12 +172,14 @@ const UpdateMaterialModal = ({ open, onClose, user, onUpdate }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Update Material</DialogTitle>
+      <DialogTitle bgcolor="black" color="white">
+        Update Material
+      </DialogTitle>
       <DialogContent>
         <Box>
           <Grid container spacing={2}>
             {/* Code Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label={isPO ? 'Material Code' : 'Code'}
@@ -181,20 +190,22 @@ const UpdateMaterialModal = ({ open, onClose, user, onUpdate }) => {
               />
             </Grid>
 
-            {/* Full Name Field */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={isPO ? 'Brand' : 'Name'}
-                name="name"
-                value={formValues.name}
-                onChange={handleChange}
-                margin="normal"
-              />
-            </Grid>
+            {/* Conditionally render Name field only if not Electrical department */}
+            {!isElectrical && (
+              <Grid item xs={12} md={12}>
+                <TextField
+                  fullWidth
+                  label={isPO ? 'Brand' : 'Name'}
+                  name="name"
+                  value={formValues.name}
+                  onChange={handleChange}
+                  margin="normal"
+                />
+              </Grid>
+            )}
 
             {/* Warehouse Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <FormControl fullWidth sx={{ marginTop: '15px' }}>
                 <InputLabel id="warehouse-label">Warehouses</InputLabel>
                 <Select
@@ -211,7 +222,7 @@ const UpdateMaterialModal = ({ open, onClose, user, onUpdate }) => {
             </Grid>
 
             {/* IsActive Dropdown */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <FormControl fullWidth sx={{ marginTop: '15px' }}>
                 <InputLabel id="isActive-label">Status</InputLabel>
                 <Select
@@ -246,27 +257,18 @@ const UpdateMaterialModal = ({ open, onClose, user, onUpdate }) => {
       <DialogActions>
         <Button
           sx={{
-            backgroundColor: 'black',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#333333',
-            },
+            backgroundColor: 'grey',
           }}
           onClick={onClose}
-          color="secondary"
+          variant="contained"
         >
           Cancel
         </Button>
 
         <Button
           onClick={handleSubmit}
-          sx={{
-            backgroundColor: '#00284C',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#00288C',
-            },
-          }}
+          sx={{ backgroundColor: 'rgb(74,115,15,0.9)' }}
+          variant="contained"
         >
           Update
         </Button>

@@ -172,24 +172,34 @@ exports.getStoreInById = async (req, res) => {
 };
 
 // Update a store-in entry
+// Update a store-in entry
 exports.updateStoreIn = async (req, res) => {
   try {
-    let storeIn = await StoreIn.findOne({ storeInId: req.params.id });
+    const { id } = req.params;
+
+    // Check if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+
+    let storeIn = await StoreIn.findById(id);
 
     if (!storeIn) {
       return res.status(404).json({ message: "StoreIn not found" });
     }
 
-    // If updating materialQty, add the new value to the existing one
-    if (req.body.materialQty !== undefined) {
-      req.body.materialQty = storeIn.materialQty + req.body.materialQty;
-    }
+    // Update the fields
+    const { materialQty, unit, notes } = req.body;
 
-    storeIn = await StoreIn.findOneAndUpdate(
-      { storeInId: req.params.id },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    if (materialQty !== undefined) storeIn.materialQty = materialQty;
+    if (unit !== undefined) storeIn.unit = unit;
+    if (notes !== undefined) storeIn.notes = notes;
+
+    // Set updated timestamp and updatedBy
+    storeIn.updatedAt = new Date();
+    storeIn.updatedBy = req.body.updatedBy || storeIn.updatedBy;
+
+    await storeIn.save();
 
     res.status(200).json(storeIn);
   } catch (error) {

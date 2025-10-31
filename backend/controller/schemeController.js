@@ -1,33 +1,22 @@
 const SchemeModel = require("../models/schemeModel");
-const WarehouseModel = require("../models/warehouseModel")
+const WarehouseModel = require("../models/warehouseModel");
 
 // Controller for handling CRUD operations
 const schemeController = {
   // Create a new member
   createMember: async (req, res) => {
     try {
-      const {
-        code,
-        name,
-        description,
-        warehouseId,
-        isActive,
-        createdAt,
-        createdBy,
-        updatedBy,
-        updatedAt,
-      } = req.body;
+      const { code, name, description, warehouseId, isActive, createdBy } =
+        req.body;
 
       const newMember = new SchemeModel({
         code,
         name,
         description,
         warehouseId,
-        isActive,
-        createdAt,
+        isActive: isActive !== undefined ? isActive : true,
         createdBy,
-        updatedBy,
-        updatedAt,
+        createdAt: new Date(),
         attendance: [], // Initialize attendance as an empty array
       });
 
@@ -41,10 +30,9 @@ const schemeController = {
   // Get all members
   getAllMembers: async (req, res) => {
     try {
-      const members = await SchemeModel.find().populate(
-        "warehouseId",
-        "code name"
-      );
+      const members = await SchemeModel.find()
+        .populate("warehouseId", "code name")
+        .sort({ updatedAt: -1, createdAt: -1 }); // Sort by most recent first
       res.status(200).json(members);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -73,10 +61,13 @@ const schemeController = {
       const staffId = req.params.id;
       const updatedData = req.body;
 
+      // Always set updatedAt to current time
+      updatedData.updatedAt = new Date();
+
       const updatedMember = await SchemeModel.findByIdAndUpdate(
         staffId,
         updatedData,
-        { new: true }
+        { new: true, runValidators: true }
       );
 
       if (!updatedMember) {

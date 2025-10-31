@@ -26,15 +26,14 @@ const Logo = forwardRef(({ disabledLink = false, sx, ...other }, ref) => {
       src="/favicon/logo.png"
       sx={{ width: 60, height: 60, cursor: 'pointer', ...sx }}
     />
-  )
-
+  );
 
   if (disabledLink) {
     return logo;
   }
 
   return (
-    <Link component={RouterLink} href="/" sx={{ display: 'contents' }}>
+    <Link component={RouterLink} href="/dashboard" sx={{ display: 'contents' }}>
       {logo}
     </Link>
   );

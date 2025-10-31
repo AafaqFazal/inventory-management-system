@@ -25,6 +25,7 @@ const remainingRoute = require("./routes/remainingStock");
 const stockReportRoute = require("./routes/stockReport");
 const poTrackingRoute = require("./routes/poTrackingRoute");
 const poTrackingReportRoute = require("./routes/poTrackingReport");
+const materialReport = require("./routes/materialReport");
 
 // Load environment variables
 dotenv.config("/.env");
@@ -66,6 +67,7 @@ app.use("/api/", schemeMappingRoute);
 app.use("/api/", poTrackingRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/", stockReportRoute);
+app.use("/api/", materialReport);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));

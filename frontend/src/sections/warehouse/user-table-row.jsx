@@ -101,8 +101,8 @@ export default function UserTableRow({
       </TableRow>
 
       <Popover open={!!open} anchorEl={open} onClose={handleCloseMenu}>
-        <MenuItem onClick={handleOpenEditModal}>
-          <Iconify icon="solar:pen-bold" sx={{ mr: 1 }} />
+        <MenuItem sx={{ color: 'rgb(74,115,15,0.9)' }} onClick={handleOpenEditModal}>
+          <Iconify icon="solar:pen-bold" sx={{ mr: 1, color: 'rgb(74,115,15,0.9)' }} />
           Edit
         </MenuItem>
         <MenuItem onClick={handleOpenDeleteModal} sx={{ color: 'error.main' }}>

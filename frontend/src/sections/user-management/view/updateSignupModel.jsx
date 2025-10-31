@@ -309,12 +309,14 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>Update User</DialogTitle>
+        <DialogTitle bgcolor="black" color="white">
+          Update User
+        </DialogTitle>
         <DialogContent>
           <Box>
             <Grid container spacing={2}>
               {/* Full Name Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Full Name"
@@ -326,7 +328,7 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
               </Grid>
 
               {/* Email Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Email"
@@ -338,7 +340,7 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
               </Grid>
 
               {/* Password Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Password"
@@ -360,7 +362,7 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
               </Grid>
 
               {/* Confirm Password Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Confirm Password"
@@ -382,7 +384,7 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
               </Grid>
 
               {/* Role Dropdown */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel id="role-select-label">Role</InputLabel>
                   <Select
@@ -405,7 +407,7 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
               </Grid>
 
               {/* Department Dropdown */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel id="department-select-label">Department</InputLabel>
                   <Select
@@ -428,7 +430,7 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
               </Grid>
 
               {/* Conditionally render Warehouse Dropdown only if role is not MANAGER */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel id="warehouse-select-label">Warehouse</InputLabel>
                   <Select
@@ -462,27 +464,18 @@ const UpdateSignUpModal = ({ open, onClose, user, onUpdate }) => {
         <DialogActions>
           <Button
             sx={{
-              backgroundColor: 'black',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#333333',
-              },
+              backgroundColor: 'grey',
             }}
             onClick={onClose}
-            color="secondary"
+            variant="contained"
           >
             Cancel
           </Button>
 
           <LoadingButton
             onClick={handleSubmit}
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
+            sx={{ backgroundColor: 'rgb(74,115,15,0.9)' }}
+            variant="contained"
             loading={loading}
           >
             Update

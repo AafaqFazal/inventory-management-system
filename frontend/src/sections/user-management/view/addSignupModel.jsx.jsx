@@ -244,12 +244,14 @@ const SignUpModal = ({ open, onClose }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>Add Users</DialogTitle>
+        <DialogTitle bgcolor="black" color="white">
+          Add Users
+        </DialogTitle>
         <DialogContent>
           <Box>
             <Grid container spacing={2}>
               {/* Full Name Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Full Name"
@@ -263,7 +265,7 @@ const SignUpModal = ({ open, onClose }) => {
               </Grid>
 
               {/* Email Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Email Address"
@@ -277,7 +279,7 @@ const SignUpModal = ({ open, onClose }) => {
               </Grid>
 
               {/* Password Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Password"
@@ -300,7 +302,7 @@ const SignUpModal = ({ open, onClose }) => {
               </Grid>
 
               {/* Confirm Password Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Confirm Password"
@@ -323,7 +325,7 @@ const SignUpModal = ({ open, onClose }) => {
               </Grid>
 
               {/* Role Dropdown */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel id="role-select-label">Role</InputLabel>
                   <Select
@@ -345,7 +347,7 @@ const SignUpModal = ({ open, onClose }) => {
                 </FormControl>
               </Grid>
               {/* Department Dropdown */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel id="department-select-label">Department</InputLabel>
                   <Select
@@ -369,7 +371,7 @@ const SignUpModal = ({ open, onClose }) => {
 
               {/* Conditionally render Warehouse Dropdown */}
               {selectedRole.role !== 'MANAGER' && (
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={12}>
                   <FormControl fullWidth margin="normal">
                     <InputLabel id="warehouse-select-label">Warehouse</InputLabel>
                     <Select
@@ -404,27 +406,18 @@ const SignUpModal = ({ open, onClose }) => {
         <DialogActions>
           <Button
             sx={{
-              backgroundColor: 'black',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#333333',
-              },
+              backgroundColor: 'grey',
             }}
             onClick={onClose}
-            color="secondary"
+            variant="contained"
           >
             Cancel
           </Button>
 
           <LoadingButton
             onClick={handleSignUpWithEmail}
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+            variant="contained"
             loading={loading}
           >
             Add User

@@ -29,12 +29,23 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 
 // Utility function to format date
 const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+};
+
+// Utility function to get the most recent timestamp
+const getLatestTimestamp = (item) => {
+  if (!item) return new Date(0);
+
+  const created = item.createdAt ? new Date(item.createdAt) : new Date(0);
+  const updated = item.updatedAt ? new Date(item.updatedAt) : null;
+
+  return updated && updated > created ? updated : created;
 };
 
 export default function UserPage() {
@@ -53,7 +64,7 @@ export default function UserPage() {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
-    severity: 'success', // Can be "success", "error", "warning", "info"
+    severity: 'success',
   });
 
   const fileInputRef = useRef(null);
@@ -100,7 +111,7 @@ export default function UserPage() {
       let filteredData = [];
 
       if (role === 'SUPER_ADMIN') {
-        filteredData = data; // No filtering needed
+        filteredData = data;
       } else if (role === 'WAREHOUSE_USER') {
         filteredData = data.filter(
           (x) => x.isActive === true && String(x.warehouseId?._id) === warehouseId
@@ -161,7 +172,6 @@ export default function UserPage() {
       } else if (role === 'MANAGER') {
         downloadUrl += `?departmentId=${departmentId}&isActive=true`;
       }
-      // For SUPER_ADMIN, use the original URL with no filters
 
       const response = await fetch(downloadUrl);
 
@@ -205,7 +215,6 @@ export default function UserPage() {
     const file = event.target.files[0];
     if (file) {
       setUploadFile(file);
-      // Auto upload when file is selected
       handleUpload(file);
     }
   };
@@ -226,14 +235,11 @@ export default function UserPage() {
       const formData = new FormData();
       formData.append('file', fileToUpload);
 
-      // Add user info for tracking who uploaded
-      const userId = sessionStorage.getItem('userId') || 'Unknown';
       const userName = sessionStorage.getItem('role') || 'Unknown User';
+      const warehouseName = sessionStorage.getItem('warehouse') || '';
       formData.append('createdBy', userName);
       formData.append('updatedBy', userName);
-      const warehouseName = sessionStorage.getItem('warehouse') || '';
       formData.append('warehouseId', warehouseId);
-      // formData.append('warehouseCode', warehouseCode);
       formData.append('warehouseName', warehouseName);
 
       const response = await fetch(`${apiUrl}/api/materials/upload`, {
@@ -241,20 +247,16 @@ export default function UserPage() {
         body: formData,
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
+        throw new Error(responseData.error || responseData.message || 'Upload failed');
       }
 
-      const result = await response.json();
+      showSnackbar(`Upload successful: ${responseData.message}`, 'success');
 
-      showSnackbar(`Upload successful: ${result.message}`, 'success');
-
-      // Reset file input
       fileInputRef.current.value = '';
       setUploadFile(null);
-
-      // Refresh the materials list
       fetchUsers();
     } catch (error) {
       console.error('Upload failed:', error);
@@ -263,6 +265,7 @@ export default function UserPage() {
       setIsUploadLoading(false);
     }
   };
+
   // Add Modal Handlers
   const handleOpenAddModal = () => setOpenAddModal(true);
   const handleCloseAddModal = () => {
@@ -284,18 +287,54 @@ export default function UserPage() {
   const handleUpdateUser = async (updatedUser) => {
     const url = import.meta.env.VITE_APP_URL;
     try {
+      const userWithTimestamp = {
+        ...updatedUser,
+        updatedAt: new Date().toISOString(),
+      };
+
       const response = await fetch(`${url}/api/materials/${updatedUser._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedUser),
+        body: JSON.stringify(userWithTimestamp),
       });
-      if (!response.ok) throw new Error('Failed to update user');
-      showSnackbar('Material Update successfully!', 'success');
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || responseData.message || 'Failed to update material');
+      }
+
+      showSnackbar('Material updated successfully!', 'success');
       await fetchUsers();
       handleCloseUpdateModal();
     } catch (error) {
-      showSnackbar('Error updating Material', 'error');
+      showSnackbar(`Error updating Material: ${error.message}`, 'error');
       console.error('Error updating user:', error);
+    }
+  };
+
+  // Handle adding new material
+  const handleAddMaterial = async (newMaterial) => {
+    const url = import.meta.env.VITE_APP_URL;
+    try {
+      const response = await fetch(`${url}/api/materials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMaterial),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || responseData.message || 'Failed to add material');
+      }
+
+      showSnackbar('Material added successfully!', 'success');
+      await fetchUsers();
+      handleCloseAddModal();
+    } catch (error) {
+      showSnackbar(`Error adding Material: ${error.message}`, 'error');
+      console.error('Error adding material:', error);
     }
   };
 
@@ -361,9 +400,19 @@ export default function UserPage() {
     }
   };
 
+  // Sort by most recent activity (created or updated)
   const dataFiltered = users
-    .sort(getComparator(order, orderBy))
-    .filter((row) => row.name?.toLowerCase().includes(filterName.toLowerCase()));
+    .filter(
+      (row) =>
+        row.name?.toLowerCase().includes(filterName.toLowerCase()) ||
+        row.code?.toLowerCase().includes(filterName.toLowerCase()) ||
+        row.description?.toLowerCase().includes(filterName.toLowerCase())
+    )
+    .sort((a, b) => {
+      const timestampA = getLatestTimestamp(a);
+      const timestampB = getLatestTimestamp(b);
+      return timestampB - timestampA;
+    });
 
   const notFound = !dataFiltered.length && !!filterName;
 
@@ -371,11 +420,10 @@ export default function UserPage() {
   const isSuperAdmin = role === 'SUPER_ADMIN';
 
   return (
-    <Container >
+    <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
         <Typography variant="h4">Material</Typography>
         <Box gap={2} sx={{ display: 'flex' }}>
-          {/* Hidden file input */}
           <input
             type="file"
             ref={fileInputRef}
@@ -384,19 +432,10 @@ export default function UserPage() {
             accept=".json"
           />
 
-          {/* Upload button - now acts as file selector */}
           {!(isManager || isSuperAdmin) && (
             <Button
-              sx={{
-                backgroundColor: '#00284C',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#00288C',
-                },
-                mr: 2,
-              }}
               variant="contained"
-              color="inherit"
+              sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
               onClick={() => fileInputRef.current.click()}
               disabled={isUplaodLoading}
               startIcon={
@@ -411,18 +450,9 @@ export default function UserPage() {
             </Button>
           )}
 
-          {/* Download button */}
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-              mr: 2,
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             onClick={handleDownload}
             disabled={isLoading}
             startIcon={
@@ -436,18 +466,10 @@ export default function UserPage() {
             {isLoading ? 'Downloading...' : 'Download Materials'}
           </Button>
 
-          {/* Add button - only visible for non-managers */}
-          {!isManager && (
+          {!(isManager || isSuperAdmin) && (
             <Button
-              sx={{
-                backgroundColor: '#00284C',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#00288C',
-                },
-              }}
               variant="contained"
-              color="inherit"
+              sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
               startIcon={<Iconify icon="eva:plus-fill" />}
               onClick={handleOpenAddModal}
             >
@@ -457,7 +479,6 @@ export default function UserPage() {
         </Box>
       </Stack>
 
-      {/* Table Section */}
       <Card>
         <UserTableToolbar
           numSelected={selected.length}
@@ -478,35 +499,54 @@ export default function UserPage() {
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'code', label: isPO ? 'Material Code' : 'Code' },
-                  { id: 'name', label: isPO ? 'Brand' : 'Name' },
-                  // { id: 'warehouseId', label: 'Warehouse' },
+                  // Conditionally include name field only if not Electrical department
+                  ...(department !== 'Electrical'
+                    ? [{ id: 'name', label: isPO ? 'Brand' : 'Name' }]
+                    : []),
                   { id: 'description', label: 'Description' },
                   { id: 'isActive', label: 'Status' },
                   { id: 'createdBy', label: 'Created By' },
                   { id: 'createdAt', label: 'Created At' },
+                  { id: 'actions', label: 'Actions' },
                   { id: '' },
                 ]}
               />
               <TableBody>
                 {dataFiltered
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <UserTableRow
-                      key={row._id}
-                      code={row.code}
-                      name={row.name}
-                      row={row}
-                      // warehouseId={row.warehouseId?.name || 'N/A'}
-                      description={row.description}
-                      isActive={row.isActive}
-                      createdBy={row.createdBy}
-                      createdAt={formatDate(row.createdAt)}
-                      selected={selected.indexOf(row._id) !== -1}
-                      handleClick={(event) => handleClick(event, row._id)}
-                      onEdit={() => handleOpenUpdateModal(row)}
-                      onDelete={() => deleteUser(row._id)}
-                    />
-                  ))}
+                  .map((row) => {
+                    const isRecentlyUpdated =
+                      row.updatedAt && new Date(row.updatedAt) > new Date(row.createdAt);
+
+                    return (
+                      <UserTableRow
+                        key={row._id}
+                        code={row.code}
+                        // Conditionally pass name prop only if not Electrical department
+                        {...(department !== 'Electrical' && { name: row.name })}
+                        row={row}
+                        description={row.description}
+                        isActive={row.isActive}
+                        createdBy={row.createdBy}
+                        createdAt={formatDate(row.createdAt)}
+                        updatedAt={formatDate(row.updatedAt)}
+                        selected={selected.indexOf(row._id) !== -1}
+                        handleClick={(event) => handleClick(event, row._id)}
+                        onEdit={() => handleOpenUpdateModal(row)}
+                        onDelete={() => deleteUser(row._id)}
+                        sx={{
+                          backgroundColor: isRecentlyUpdated
+                            ? 'rgba(76, 175, 80, 0.08)'
+                            : 'inherit',
+                          '&:hover': {
+                            backgroundColor: isRecentlyUpdated
+                              ? 'rgba(76, 175, 80, 0.12)'
+                              : '#fafafa',
+                          },
+                        }}
+                      />
+                    );
+                  })}
                 <TableEmptyRows
                   height={77}
                   emptyRows={emptyRows(page, rowsPerPage, users.length)}
@@ -530,7 +570,7 @@ export default function UserPage() {
 
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
@@ -539,8 +579,11 @@ export default function UserPage() {
         </Alert>
       </Snackbar>
 
-      {/* Modals */}
-      <AddMaterialModal open={openAddModal} onClose={handleCloseAddModal} />
+      <AddMaterialModal
+        open={openAddModal}
+        onClose={handleCloseAddModal}
+        onAdd={handleAddMaterial}
+      />
       <UpdateMaterialModal
         open={openUpdateModal}
         onClose={handleCloseUpdateModal}

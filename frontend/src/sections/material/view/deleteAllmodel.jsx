@@ -27,14 +27,10 @@ export default function DeleteAllConfirmationModal({ open, onClose, onProceed })
       <DialogActions>
         <Button
           sx={{
-            backgroundColor: 'black',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#333333',
-            },
+            backgroundColor: 'grey',
           }}
           onClick={onClose}
-          color="primary"
+          variant="contained"
         >
           Cancel
         </Button>

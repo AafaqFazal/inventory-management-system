@@ -864,6 +864,38 @@ export default function StockReport() {
           autoHeight
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={(error) => console.error(error)}
+          sx={{
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: '#000000 !important',
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-columnHeader': {
+              backgroundColor: '#000000 !important',
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: '#ffffff !important',
+              fontWeight: 'bold',
+            },
+            '& .MuiDataGrid-columnHeaderTitleContainer': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-sortIcon': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-menuIconButton': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-filterIcon': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-iconButtonContainer': {
+              color: '#ffffff !important',
+            },
+            '& .MuiDataGrid-columnSeparator': {
+              color: '#ffffff !important',
+            },
+          }}
         />
       </Paper>
       <Snackbar

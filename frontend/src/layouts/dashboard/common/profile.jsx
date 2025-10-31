@@ -60,7 +60,12 @@ const ProfilePopup = ({ open, handleClose, userId }) => {
           margin="dense"
           InputProps={{ readOnly: true }}
         />
-        <Button onClick={handleClose} color="primary" variant="contained" fullWidth sx={{ mt: 2 }}>
+        <Button
+          onClick={handleClose}
+          variant="contained"
+          fullWidth
+          sx={{ mt: 2, backgroundColor: 'grey' }}
+        >
           Close
         </Button>
       </DialogContent>

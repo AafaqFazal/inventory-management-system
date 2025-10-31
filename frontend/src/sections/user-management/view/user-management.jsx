@@ -206,19 +206,12 @@ export default function UserPage() {
   const notFound = !dataFiltered.length && !!filterName;
 
   return (
-    <Container >
+    <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
         <Typography variant="h4">User Management</Typography>
         <Button
-          sx={{
-            backgroundColor: '#00284C',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#00288C',
-            },
-          }}
           variant="contained"
-          color="inherit"
+          sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
           startIcon={<Iconify icon="eva:plus-fill" />}
           onClick={handleOpenAddModal}
         >

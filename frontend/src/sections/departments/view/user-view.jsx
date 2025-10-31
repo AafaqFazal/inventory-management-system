@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
-import { Card , Alert , Snackbar } from '@mui/material';
+import { Card, Alert, Snackbar } from '@mui/material';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
@@ -35,21 +35,21 @@ export default function UserPage() {
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-   const [snackbar, setSnackbar] = useState({
-     open: false,
-     message: '',
-     severity: 'success', // Can be "success", "error", "warning", "info"
-   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success', // Can be "success", "error", "warning", "info"
+  });
 
-   // Function to show Snackbar
-   const showSnackbar = (message, severity) => {
-     setSnackbar({ open: true, message, severity });
-   };
+  // Function to show Snackbar
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  };
 
-   // Close Snackbar
-   const handleCloseSnackbar = () => {
-     setSnackbar({ ...snackbar, open: false });
-   };
+  // Close Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   // Fetch users from the API
   const fetchUsers = async () => {
@@ -193,24 +193,9 @@ export default function UserPage() {
   const notFound = !dataFiltered.length && !!filterName;
 
   return (
-    <Container >
+    <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
         <Typography variant="h4">Department</Typography>
-        {/* <Button
-          sx={{
-            backgroundColor: '#00284C',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#00288C',
-            },
-          }}
-          variant="contained"
-          color="inherit"
-          startIcon={<Iconify icon="eva:plus-fill" />}
-          onClick={handleOpenAddModal}
-        >
-          Add
-        </Button> */}
       </Stack>
 
       {/* Table Section */}

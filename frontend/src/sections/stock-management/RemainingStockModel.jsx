@@ -462,14 +462,11 @@ const StockReportModal = ({
               >
                 <Button
                   sx={{
-                    backgroundColor: 'black',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: '#333333',
-                    },
+                    backgroundColor: 'grey',
+
                     height: '40px',
                   }}
-                  color="secondary"
+                  variant="contained"
                   onClick={onClose}
                 >
                   Cancel
@@ -549,6 +546,8 @@ const StockReportModal = ({
                     padding: '0 4px !important',
                     fontSize: '0.5rem',
                     minHeight: '32px !important',
+                    backgroundColor: '#000000 !important',
+                    color: '#ffffff !important',
                   },
 
                   // Header title container
@@ -557,6 +556,8 @@ const StockReportModal = ({
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
+                    backgroundColor: '#000000 !important',
+                    color: '#ffffff !important',
                   },
 
                   // Virtual scroller

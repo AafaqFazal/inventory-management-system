@@ -25,13 +25,29 @@ export default function UserTableHead({
   };
 
   return (
-    <TableHead>
+    <TableHead sx={{ backgroundColor: 'black' }}>
       <TableRow>
-        <TableCell padding="checkbox">
+        <TableCell
+          padding="checkbox"
+          sx={{
+            backgroundColor: 'black',
+            color: 'white',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        >
           <Checkbox
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
+            sx={{
+              color: 'white',
+              '&.Mui-checked': {
+                color: 'white',
+              },
+              '&.MuiCheckbox-indeterminate': {
+                color: 'white',
+              },
+            }}
           />
         </TableCell>
 
@@ -40,13 +56,31 @@ export default function UserTableHead({
             key={headCell.id}
             align={headCell.align || 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
-            sx={{ width: headCell.width, minWidth: headCell.minWidth }}
+            sx={{
+              width: headCell.width,
+              minWidth: headCell.minWidth,
+              backgroundColor: 'black',
+              color: 'white',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+            }}
           >
             <TableSortLabel
               hideSortIcon
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={onSort(headCell.id)}
+              sx={{
+                color: 'white !important',
+                '&:hover': {
+                  color: 'white',
+                },
+                '&.Mui-active': {
+                  color: 'white',
+                },
+                '& .MuiTableSortLabel-icon': {
+                  color: 'white !important',
+                },
+              }}
             >
               {headCell.label}
               {orderBy === headCell.id ? (

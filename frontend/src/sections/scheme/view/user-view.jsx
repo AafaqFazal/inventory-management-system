@@ -28,12 +28,23 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 
 // Utility function to format date
 const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+};
+
+// Utility function to get the most recent timestamp
+const getLatestTimestamp = (item) => {
+  if (!item) return new Date(0);
+
+  const created = item.createdAt ? new Date(item.createdAt) : new Date(0);
+  const updated = item.updatedAt ? new Date(item.updatedAt) : null;
+
+  return updated && updated > created ? updated : created;
 };
 
 export default function UserPage() {
@@ -50,7 +61,7 @@ export default function UserPage() {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
-    severity: 'success', // Can be "success", "error", "warning", "info"
+    severity: 'success',
   });
 
   const warehouseId = sessionStorage.getItem('warehouseId');
@@ -59,6 +70,7 @@ export default function UserPage() {
   const role = sessionStorage.getItem('role');
   const isPONumber = (role === 'WAREHOUSE_USER' || role === 'MANAGER') && department === 'Telecom';
   const isPO = department === 'Telecom';
+  const isElectrical = department === 'Electrical';
 
   // Function to show Snackbar
   const showSnackbar = (message, severity) => {
@@ -98,7 +110,7 @@ export default function UserPage() {
       let filteredData = [];
 
       if (role === 'SUPER_ADMIN') {
-        filteredData = data; // No filtering needed
+        filteredData = data;
       } else if (role === 'WAREHOUSE_USER') {
         filteredData = data.filter(
           (x) => x.isActive === true && String(x.warehouseId?._id) === warehouseId
@@ -151,7 +163,7 @@ export default function UserPage() {
   const handleOpenAddModal = () => setOpenAddModal(true);
   const handleCloseAddModal = () => {
     setOpenAddModal(false);
-    fetchUsers();
+    fetchUsers(); // Refetch to get the newly added item with proper sorting
   };
 
   // Update Modal Handlers
@@ -168,14 +180,22 @@ export default function UserPage() {
   const handleUpdateUser = async (updatedUser) => {
     const url = import.meta.env.VITE_APP_URL;
     try {
+      // Add updatedAt timestamp
+      const userWithTimestamp = {
+        ...updatedUser,
+        updatedAt: new Date().toISOString(),
+      };
+
       const response = await fetch(`${url}/api/schemes/${updatedUser._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedUser),
+        body: JSON.stringify(userWithTimestamp),
       });
-      showSnackbar('Scheme updated successfully!', 'success');
+
       if (!response.ok) throw new Error('Failed to update scheme');
-      await fetchUsers();
+
+      showSnackbar('Scheme updated successfully!', 'success');
+      await fetchUsers(); // This will refetch and apply the new sorting
       handleCloseUpdateModal();
     } catch (error) {
       showSnackbar('Error updating scheme!', 'error');
@@ -245,31 +265,32 @@ export default function UserPage() {
     }
   };
 
+  // Sort by most recent activity (created or updated)
   const dataFiltered = users
-    .filter((row) => row.name?.toLowerCase().includes(filterName.toLowerCase())) // Filter by name
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by createdAt (newest first)
+    .filter(
+      (row) =>
+        row.name?.toLowerCase().includes(filterName.toLowerCase()) ||
+        row.code?.toLowerCase().includes(filterName.toLowerCase()) ||
+        row.description?.toLowerCase().includes(filterName.toLowerCase())
+    )
+    .sort((a, b) => {
+      const timestampA = getLatestTimestamp(a);
+      const timestampB = getLatestTimestamp(b);
+      return timestampB - timestampA;
+    });
 
   const notFound = !dataFiltered.length && !!filterName;
 
   const isManager = role === 'MANAGER';
 
   return (
-    <Container >
+    <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
-        <Typography variant="h4">
-          {isPONumber ? 'PO Number' : 'Scheme'} {/* Conditional rendering */}
-        </Typography>
+        <Typography variant="h4">{isPONumber ? 'PO Number' : 'Scheme'}</Typography>
         {!isManager && (
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             startIcon={<Iconify icon="eva:plus-fill" />}
             onClick={handleOpenAddModal}
           >
@@ -299,35 +320,58 @@ export default function UserPage() {
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'code', label: isPO ? 'PO Code' : 'Code' },
-                  { id: 'name', label: isPO ? 'PO Name' : 'Name' },
-                  // { id: 'warehouseId', label: 'Warehouse' },
-                  { id: 'description', label: 'Description' },
+                  // Conditionally include name field only if not Electrical department
+                  ...(department !== 'Electrical'
+                    ? [{ id: 'name', label: isPO ? 'PO Name' : 'Name' }]
+                    : []),
+                  // Conditionally include description field only if not Electrical department
+                  ...(department !== 'Electrical'
+                    ? [{ id: 'description', label: 'Description' }]
+                    : []),
                   { id: 'isActive', label: 'Status' },
                   { id: 'createdBy', label: 'Created By' },
                   { id: 'createdAt', label: 'Created At' },
+                  { id: 'actions', label: 'Actions' },
                   { id: '' },
                 ]}
               />
               <TableBody>
                 {dataFiltered
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <UserTableRow
-                      key={row._id}
-                      code={row.code}
-                      name={row.name}
-                      row={row}
-                      // warehouseId={row.warehouseId?.name || 'N/A'}
-                      description={row.description}
-                      isActive={row.isActive}
-                      createdBy={row.createdBy}
-                      createdAt={formatDate(row.createdAt)} // Format the date
-                      selected={selected.indexOf(row._id) !== -1}
-                      handleClick={(event) => handleClick(event, row._id)}
-                      onEdit={() => handleOpenUpdateModal(row)}
-                      onDelete={() => deleteUser(row._id)}
-                    />
-                  ))}
+                  .map((row) => {
+                    const isRecentlyUpdated =
+                      row.updatedAt && new Date(row.updatedAt) > new Date(row.createdAt);
+
+                    return (
+                      <UserTableRow
+                        key={row._id}
+                        code={row.code}
+                        // Conditionally pass name prop only if not Electrical department
+                        {...(department !== 'Electrical' && { name: row.name })}
+                        row={row}
+                        // Conditionally pass description prop only if not Electrical department
+                        {...(department !== 'Electrical' && { description: row.description })}
+                        isActive={row.isActive}
+                        createdBy={row.createdBy}
+                        createdAt={formatDate(row.createdAt)}
+                        updatedAt={formatDate(row.updatedAt)}
+                        selected={selected.indexOf(row._id) !== -1}
+                        handleClick={(event) => handleClick(event, row._id)}
+                        onEdit={() => handleOpenUpdateModal(row)}
+                        onDelete={() => deleteUser(row._id)}
+                        sx={{
+                          backgroundColor: isRecentlyUpdated
+                            ? 'rgba(76, 175, 80, 0.08)'
+                            : 'inherit',
+                          '&:hover': {
+                            backgroundColor: isRecentlyUpdated
+                              ? 'rgba(76, 175, 80, 0.12)'
+                              : '#fafafa',
+                          },
+                        }}
+                      />
+                    );
+                  })}
                 <TableEmptyRows
                   height={77}
                   emptyRows={emptyRows(page, rowsPerPage, users.length)}

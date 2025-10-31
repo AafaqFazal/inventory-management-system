@@ -1,6 +1,6 @@
 import axios from 'axios';
-import PropTypes from 'prop-types';
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 import {
   Box,
@@ -142,12 +142,14 @@ const AddSchemeModal = ({ open, onClose }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>Add RWS PO Tracking</DialogTitle>
+        <DialogTitle bgcolor="black" color="white">
+          Add RWS PO Tracking
+        </DialogTitle>
         <DialogContent>
           <Box>
             <Grid container spacing={2}>
               {/* PO Number Field */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="PO"
@@ -160,7 +162,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Item Code"
@@ -173,7 +175,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Description"
@@ -185,7 +187,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                   helperText={errors.description}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Unit"
@@ -216,7 +218,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 </FormControl>
               </Grid> */}
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Supplier Name"
@@ -229,7 +231,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Brand"
@@ -242,7 +244,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="PO QTY"
@@ -255,7 +257,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Received QTY"
@@ -268,7 +270,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label="Remaining QTY"
@@ -287,21 +289,17 @@ const AddSchemeModal = ({ open, onClose }) => {
           <Button
             onClick={handleCloseAddModal}
             sx={{
-              backgroundColor: 'black',
-              color: 'white',
-              '&:hover': { backgroundColor: '#333' },
+              backgroundColor: 'grey',
             }}
+            variant="contained"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': { backgroundColor: '#00288C' },
-            }}
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+            variant="contained"
           >
             Add
           </Button>

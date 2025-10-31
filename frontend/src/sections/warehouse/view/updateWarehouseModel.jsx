@@ -117,12 +117,14 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Update Warehouse</DialogTitle>
+      <DialogTitle bgcolor="black" color="white">
+        Update Warehouse
+      </DialogTitle>
       <DialogContent>
         <Box>
           <Grid container spacing={2}>
             {/* Code Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Code"
@@ -134,7 +136,7 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
             </Grid>
 
             {/* Full Name Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Name"
@@ -145,7 +147,7 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <FormControl fullWidth sx={{ marginTop: '15px' }}>
                 <InputLabel id="department-label">Department</InputLabel>
                 <Select
@@ -170,7 +172,7 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
             </Grid>
 
             {/* IsActive Dropdown */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <FormControl fullWidth sx={{ marginTop: '15px' }}>
                 <InputLabel id="isActive-label">Status</InputLabel>
                 <Select
@@ -186,7 +188,7 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
               </FormControl>
             </Grid>
             {/* City Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="City"
@@ -200,7 +202,7 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
             </Grid>
 
             {/* Area Field */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth
                 label="Area"
@@ -235,29 +237,14 @@ const UpdateWarehouseModal = ({ open, onClose, warehouse, onUpdate }) => {
         )} */}
       </DialogContent>
       <DialogActions>
-        <Button
-          sx={{
-            backgroundColor: 'black',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#333333',
-            },
-          }}
-          onClick={onClose}
-          color="secondary"
-        >
+        <Button sx={{ background: 'grey' }} onClick={onClose} variant="contained">
           Cancel
         </Button>
 
         <Button
           onClick={handleSubmit}
-          sx={{
-            backgroundColor: '#00284C',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#00288C',
-            },
-          }}
+          sx={{ backgroundColor: 'rgb(74,115,15,0.9)' }}
+          variant="contained"
         >
           Update
         </Button>

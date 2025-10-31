@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import DownloadIcon from '@mui/icons-material/Download';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import { Card, Alert, MenuItem, IconButton, Snackbar } from '@mui/material';
+import { Card, Alert, MenuItem, Snackbar, IconButton } from '@mui/material';
 
 // eslint-disable-next-line import/no-unresolved
 import Iconify from 'src/components/iconify';
@@ -415,15 +415,8 @@ export default function UserPage() {
         <Typography variant="h4">RWS PO Tracking</Typography>
         <Stack direction="row" spacing={2} alignItems="center">
           <Button
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#00288C',
-              },
-            }}
             variant="contained"
-            color="inherit"
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
             startIcon={<Iconify icon="eva:plus-fill" />}
             onClick={handleOpenAddModal}
           >

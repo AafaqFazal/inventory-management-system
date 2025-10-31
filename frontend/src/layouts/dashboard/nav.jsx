@@ -74,10 +74,11 @@ export default function Nav({ openNav, onCloseNav }) {
         display: 'flex',
         borderRadius: 1.5,
         alignItems: 'center',
-        bgcolor: (theme) => alpha(theme.palette.grey[500], 0.12),
+        bgcolor: 'rgba(0, 0, 0, 0.8)', // Dark background for user account section
+        color: 'white', // White text for contrast
       }}
     >
-      <Avatar>{user.avatarText}</Avatar>
+      <Avatar sx={{ bgcolor: 'primary.main' }}>{user.avatarText}</Avatar>
 
       <Box sx={{ ml: 2, maxWidth: 'calc(100% - 48px)' }}>
         <Typography
@@ -87,6 +88,7 @@ export default function Nav({ openNav, onCloseNav }) {
             overflowWrap: 'break-word',
             whiteSpace: 'normal',
             maxWidth: '100%',
+            color: 'white', // White text
           }}
         >
           {user.displayName}
@@ -107,6 +109,7 @@ export default function Nav({ openNav, onCloseNav }) {
     <Scrollbar
       sx={{
         height: 1,
+        backgroundColor: '#000', // Black background for the entire navbar
         '& .simplebar-content': {
           height: 1,
           display: 'flex',
@@ -114,7 +117,7 @@ export default function Nav({ openNav, onCloseNav }) {
         },
       }}
     >
-      <Logo sx={{ mt: 3, ml: 4 }} />
+      <Logo sx={{ mt: 3, ml: 4 }} /> {/* Make logo white */}
       {renderAccount}
       {renderMenu}
       <Box sx={{ flexGrow: 1 }} />
@@ -126,6 +129,7 @@ export default function Nav({ openNav, onCloseNav }) {
       sx={{
         flexShrink: { lg: 0 },
         width: { lg: NAV.WIDTH },
+        backgroundColor: '#000', // Black background for the container
       }}
     >
       {upLg ? (
@@ -134,7 +138,8 @@ export default function Nav({ openNav, onCloseNav }) {
             height: 1,
             position: 'fixed',
             width: NAV.WIDTH,
-            borderRight: (theme) => `dashed 1px ${theme.palette.divider}`,
+            backgroundColor: '#000', // Black background
+            borderRight: (theme) => `dashed 1px ${alpha(theme.palette.common.white, 0.2)}`, // Light border for contrast
           }}
         >
           {renderContent}
@@ -146,6 +151,8 @@ export default function Nav({ openNav, onCloseNav }) {
           PaperProps={{
             sx: {
               width: NAV.WIDTH,
+              backgroundColor: '#000', // Black background for mobile drawer
+              color: 'white', // White text
             },
           }}
         >
@@ -173,20 +180,23 @@ function NavItem({ item }) {
         minHeight: 44,
         borderRadius: 0.75,
         typography: 'body2',
-        color: 'text.secondary',
+        color: 'rgba(255, 255, 255, 0.7)', // White with slight transparency
         textTransform: 'capitalize',
         fontWeight: 'fontWeightMedium',
+        '&:hover': {
+          backgroundColor: 'rgba(255, 255, 255, 0.1)', // Light hover effect
+        },
         ...(active && {
           color: 'primary.main',
           fontWeight: 'fontWeightSemiBold',
-          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
           '&:hover': {
-            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.16),
+            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.3),
           },
         }),
       }}
     >
-      <Box component="span" sx={{ width: 24, height: 24, mr: 2 }}>
+      <Box component="span" sx={{ width: 24, height: 24, mr: 2, color: 'inherit' }}>
         {item.icon}
       </Box>
       <Box component="span">{item.title} </Box>

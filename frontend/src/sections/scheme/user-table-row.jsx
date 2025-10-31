@@ -1,5 +1,3 @@
-// new
-
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 
@@ -74,6 +72,7 @@ export default function UserTableRow({
   const role = sessionStorage.getItem('role') || '';
   const department = sessionStorage.getItem('department') || '';
   const isManager = role.trim().toUpperCase() === 'MANAGER';
+  const isElectrical = department === 'Electrical'; // Check if department is Electrical
 
   // ✅ Load warehouseIds from sessionStorage
   const warehouseIds = JSON.parse(sessionStorage.getItem('warehouseIds') || '[]');
@@ -105,9 +104,15 @@ export default function UserTableRow({
         </TableCell>
 
         <TableCell>{code}</TableCell>
-        <TableCell>{name}</TableCell>
+
+        {/* Conditionally render Name cell only if not Electrical department */}
+        {!isElectrical && <TableCell>{name}</TableCell>}
+
         {/* <TableCell>{warehouseId}</TableCell> */}
-        <TableCell>{description}</TableCell>
+
+        {/* Conditionally render Description cell only if not Electrical department */}
+        {!isElectrical && <TableCell>{description}</TableCell>}
+
         <TableCell>{getStatus()}</TableCell>
         <TableCell>{createdBy}</TableCell>
         <TableCell>{createdAt}</TableCell>
@@ -122,8 +127,8 @@ export default function UserTableRow({
       </TableRow>
 
       <Popover open={!!open} anchorEl={open} onClose={handleCloseMenu}>
-        <MenuItem onClick={handleOpenEditModal}>
-          <Iconify icon="solar:pen-bold" sx={{ mr: 1 }} />
+        <MenuItem sx={{ color: 'rgb(74,115,15,0.9)' }} onClick={handleOpenEditModal}>
+          <Iconify sx={{ color: 'rgb(74,115,15,0.9)', mr: 1 }} icon="solar:pen-bold" />
           Edit
         </MenuItem>
         <MenuItem onClick={handleOpenDeleteModal} sx={{ color: 'error.main' }}>

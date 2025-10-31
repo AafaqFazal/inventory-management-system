@@ -43,6 +43,7 @@ const AddSchemeModal = ({ open, onClose }) => {
     severity: 'success',
   });
   const department = sessionStorage.getItem('department');
+  const isElectrical = department === 'Electrical'; // Check if department is Electrical
   const isPO = department === 'Telecom';
 
   const showSnackbar = (message, severity) => {
@@ -116,7 +117,10 @@ const AddSchemeModal = ({ open, onClose }) => {
   const validateForm = () => {
     const newErrors = {};
     if (!formValues.code) newErrors.code = 'Code is required';
-    if (!formValues.name) newErrors.name = 'Name is required';
+
+    // Only validate name if department is not Electrical
+    if (!isElectrical && !formValues.name) newErrors.name = 'Name is required';
+
     if (!formValues.warehouseId) newErrors.warehouseId = 'Department is required';
     if (!formValues.isActive) newErrors.isActive = 'Status is required';
     setErrors(newErrors);
@@ -128,12 +132,20 @@ const AddSchemeModal = ({ open, onClose }) => {
     if (!validateForm()) return;
 
     setLoading(true);
+
+    // Prepare payload with static values for Electrical department
     const payload = {
       ...formValues,
       isActive: formValues.isActive === 'true',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    // If department is Electrical, add static values for name and description
+    if (isElectrical) {
+      payload.name = 'Electrical Scheme'; // Static name for Electrical department
+      payload.description = 'This is an electrical scheme'; // Static description for Electrical department
+    }
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_APP_URL}/api/schemes`, payload);
@@ -166,11 +178,13 @@ const AddSchemeModal = ({ open, onClose }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>Add</DialogTitle>
+        <DialogTitle bgcolor="black" color="white">
+          Add
+        </DialogTitle>
         <DialogContent>
           <Box>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <TextField
                   fullWidth
                   label={isPO ? 'PO Code' : 'Code'}
@@ -183,20 +197,23 @@ const AddSchemeModal = ({ open, onClose }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={isPO ? 'PO Name' : 'Name'}
-                  name="name"
-                  value={formValues.name}
-                  onChange={handleChange}
-                  margin="normal"
-                  error={!!errors.name}
-                  helperText={errors.name}
-                />
-              </Grid>
+              {/* Hide Name field for Electrical department */}
+              {!isElectrical && (
+                <Grid item xs={12} md={12}>
+                  <TextField
+                    fullWidth
+                    label={isPO ? 'PO Name' : 'Name'}
+                    name="name"
+                    value={formValues.name}
+                    onChange={handleChange}
+                    margin="normal"
+                    error={!!errors.name}
+                    helperText={errors.name}
+                  />
+                </Grid>
+              )}
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth sx={{ marginTop: '15px' }}>
                   <InputLabel id="warehouse-label">Warehouses</InputLabel>
                   <Select
@@ -221,7 +238,7 @@ const AddSchemeModal = ({ open, onClose }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={12}>
                 <FormControl fullWidth sx={{ marginTop: '15px' }}>
                   <InputLabel id="isActive-label">Status</InputLabel>
                   <Select
@@ -242,18 +259,21 @@ const AddSchemeModal = ({ open, onClose }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  name="description"
-                  value={formValues.description}
-                  onChange={handleChange}
-                  margin="normal"
-                  multiline
-                  rows={3}
-                />
-              </Grid>
+              {/* Hide Description field for Electrical department */}
+              {!isElectrical && (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    name="description"
+                    value={formValues.description}
+                    onChange={handleChange}
+                    margin="normal"
+                    multiline
+                    rows={3}
+                  />
+                </Grid>
+              )}
             </Grid>
           </Box>
         </DialogContent>
@@ -261,21 +281,17 @@ const AddSchemeModal = ({ open, onClose }) => {
           <Button
             onClick={handleCloseAddModal}
             sx={{
-              backgroundColor: 'black',
-              color: 'white',
-              '&:hover': { backgroundColor: '#333' },
+              backgroundColor: 'grey',
             }}
+            variant="contained"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            sx={{
-              backgroundColor: '#00284C',
-              color: 'white',
-              '&:hover': { backgroundColor: '#00288C' },
-            }}
+            sx={{ backgroundColor: 'rgb(7, 85, 162,1)' }}
+            variant="contained"
           >
             Add
           </Button>

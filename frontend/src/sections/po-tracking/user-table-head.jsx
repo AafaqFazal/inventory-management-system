@@ -29,20 +29,29 @@ export default function UserTableHead({
   const poDetailsColumns = 6; // scheme, poQty, receivedPoQty, remainingQty, unit
 
   return (
-    <TableHead>
+    <TableHead sx={{ backgroundColor: 'black' }}>
       {/* Add the group header row */}
       <TableRow>
         {/* Empty cell for checkbox column */}
-        <TableCell padding="checkbox" />
+        <TableCell
+          padding="checkbox"
+          sx={{
+            backgroundColor: 'black',
+            color: 'white',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        />
 
         {/* Item Details group */}
         <TableCell
           colSpan={itemDetailsColumns}
           align="center"
           sx={{
-            backgroundColor: '#f5f5f5',
+            backgroundColor: 'black',
+            color: 'white',
             fontWeight: 'bold',
-            borderRight: '1px solid rgba(224, 224, 224, 1)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.12)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
           }}
         >
           Item Details
@@ -53,24 +62,48 @@ export default function UserTableHead({
           colSpan={poDetailsColumns}
           align="center"
           sx={{
-            backgroundColor: '#f5f5f5',
+            backgroundColor: 'black',
+            color: 'white',
             fontWeight: 'bold',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
           }}
         >
           Supplier PO Details
         </TableCell>
 
         {/* Empty cell for actions column */}
-        <TableCell />
+        <TableCell
+          sx={{
+            backgroundColor: 'black',
+            color: 'white',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        />
       </TableRow>
 
       {/* Original header row */}
       <TableRow>
-        <TableCell padding="checkbox">
+        <TableCell
+          padding="checkbox"
+          sx={{
+            backgroundColor: 'black',
+            color: 'white',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        >
           {/* <Checkbox
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
+            sx={{
+              color: 'white',
+              '&.Mui-checked': {
+                color: 'white',
+              },
+              '&.MuiCheckbox-indeterminate': {
+                color: 'white',
+              },
+            }}
           /> */}
         </TableCell>
 
@@ -82,10 +115,13 @@ export default function UserTableHead({
             sx={{
               width: headCell.width,
               minWidth: headCell.minWidth,
+              backgroundColor: 'black',
+              color: 'white',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
               // Add a right border after the last item details column
               ...(index === itemDetailsColumns - 1
                 ? {
-                    borderRight: '1px solid rgba(224, 224, 224, 1)',
+                    borderRight: '1px solid rgba(255, 255, 255, 0.12)',
                   }
                 : {}),
             }}
@@ -95,6 +131,18 @@ export default function UserTableHead({
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={onSort(headCell.id)}
+              sx={{
+                color: 'white !important',
+                '&:hover': {
+                  color: 'white',
+                },
+                '&.Mui-active': {
+                  color: 'white',
+                },
+                '& .MuiTableSortLabel-icon': {
+                  color: 'white !important',
+                },
+              }}
             >
               {headCell.label}
               {orderBy === headCell.id ? (

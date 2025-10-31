@@ -59,6 +59,7 @@ const handleServerError = (error, res) => {
     .status(500)
     .json({ message: "Server error", error: error.message });
 };
+
 // Utility function for text wrapping
 const splitLines = (doc, text, maxWidth) => {
   const words = text.split(" ");
@@ -182,9 +183,9 @@ router.get("/downloadpdf-storein", async (req, res) => {
     const colPositions = {
       sn: 30,
       code: 70,
-      po: 190, // Adjusted this
-      desc: 310, // Adjusted this
-      unit: 570, // Increased gap between desc and unit
+      po: 190,
+      desc: 310,
+      unit: 570,
       qty: 650,
       date: 750,
     };
@@ -214,10 +215,16 @@ router.get("/downloadpdf-storein", async (req, res) => {
         width: colWidths.desc,
         align: "left",
       })
-      .text("Unit", colPositions.unit + 5, headerY + 5, {
-        width: colWidths.unit,
-        align: "center",
-      })
+      // Change Unit to UOM for Electrical department
+      .text(
+        selectedWarehouseDepartment === "Electrical" ? "UOM" : "Unit",
+        colPositions.unit + 5,
+        headerY + 5,
+        {
+          width: colWidths.unit,
+          align: "center",
+        }
+      )
       .text("Qty", colPositions.qty + 5, headerY + 5, {
         width: colWidths.qty,
         align: "center",
@@ -365,7 +372,7 @@ router.post("/selected_schemedownloadpdf-storein", async (req, res) => {
       sn: 30,
       code: 70,
       po: 90,
-      desc: pageWidth - 370, // Adjusted to match the image layout
+      desc: pageWidth - 370,
       unit: 40,
       qty: 40,
       date: 80,
@@ -405,10 +412,16 @@ router.post("/selected_schemedownloadpdf-storein", async (req, res) => {
         width: colWidths.desc,
         align: "left",
       })
-      .text("Unit", colPositions.unit + 5, headerY + 5, {
-        width: colWidths.unit,
-        align: "center",
-      })
+      // Change Unit to UOM for Electrical department
+      .text(
+        selectedWarehouseDepartment === "Electrical" ? "UOM" : "Unit",
+        colPositions.unit + 5,
+        headerY + 5,
+        {
+          width: colWidths.unit,
+          align: "center",
+        }
+      )
       .text("Qty", colPositions.qty + 5, headerY + 5, {
         width: colWidths.qty,
         align: "center",
@@ -520,10 +533,16 @@ router.post("/selected_schemedownloadpdf-storein", async (req, res) => {
             width: colWidths.desc,
             align: "left",
           })
-          .text("Unit", colPositions.unit + 5, currentY + 5, {
-            width: colWidths.unit,
-            align: "center",
-          })
+          // Change Unit to UOM for Electrical department
+          .text(
+            selectedWarehouseDepartment === "Electrical" ? "UOM" : "Unit",
+            colPositions.unit + 5,
+            currentY + 5,
+            {
+              width: colWidths.unit,
+              align: "center",
+            }
+          )
           .text("Qty", colPositions.qty + 5, currentY + 5, {
             width: colWidths.qty,
             align: "center",
@@ -556,6 +575,7 @@ router.post("/selected_schemedownloadpdf-storein", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 // Excel Report Endpoint
 router.get("/storein-report", async (req, res) => {
   try {
@@ -605,34 +625,63 @@ router.get("/storein-report", async (req, res) => {
     const worksheet = workbook.addWorksheet("Stock In Report");
     const headerTitle =
       selectedWarehouseDepartment === "Telecom" ? "PO" : "Scheme";
-    const header = [
-      headerTitle,
-      "Description",
-      "Material Code",
-      "Material Qty",
-      "Notes",
-      "Unit",
-      "Created At",
-      "Updated At",
-      "Created By",
-      "Updated By",
-    ];
+
+    // Remove "Notes" column for Electrical department
+    const header =
+      selectedWarehouseDepartment === "Electrical"
+        ? [
+            headerTitle,
+            "Description",
+            "Material Code",
+            "Material Qty",
+            "UOM", // Changed from "Unit" to "UOM"
+            "Created At",
+            "Updated At",
+            "Created By",
+            "Updated By",
+          ]
+        : [
+            headerTitle,
+            "Description",
+            "Material Code",
+            "Material Qty",
+            "Notes",
+            "Unit",
+            "Created At",
+            "Updated At",
+            "Created By",
+            "Updated By",
+          ];
 
     worksheet.addRow(header);
 
     filteredData.forEach((item) => {
-      worksheet.addRow([
-        item.scheme,
-        item.description,
-        item.materialCode,
-        item.materialQty,
-        item.notes,
-        item.unit,
-        item.createdAt,
-        item.updatedAt,
-        item.createdBy,
-        item.updatedBy,
-      ]);
+      if (selectedWarehouseDepartment === "Electrical") {
+        worksheet.addRow([
+          item.scheme,
+          item.description,
+          item.materialCode,
+          item.materialQty,
+          item.unit, // This will be "UOM" value
+          item.createdAt,
+          item.updatedAt,
+          item.createdBy,
+          item.updatedBy,
+        ]);
+      } else {
+        worksheet.addRow([
+          item.scheme,
+          item.description,
+          item.materialCode,
+          item.materialQty,
+          item.notes,
+          item.unit,
+          item.createdAt,
+          item.updatedAt,
+          item.createdBy,
+          item.updatedBy,
+        ]);
+      }
     });
 
     res.setHeader(
@@ -669,12 +718,26 @@ router.post("/storein-report-by-scheme", async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Stock In Report");
 
-    const updatedColumns = columns.map((col) => {
-      if (col.field === "scheme" && selectedWarehouseDepartment === "Telecom") {
-        return { ...col, headerName: "PO CODE" };
-      }
-      return col;
-    });
+    const updatedColumns = columns
+      .map((col) => {
+        if (
+          col.field === "scheme" &&
+          selectedWarehouseDepartment === "Telecom"
+        ) {
+          return { ...col, headerName: "PO CODE" };
+        }
+        // Change Unit to UOM and remove Notes for Electrical department
+        if (selectedWarehouseDepartment === "Electrical") {
+          if (col.field === "unit") {
+            return { ...col, headerName: "UOM" };
+          }
+          if (col.field === "notes") {
+            return null; // Remove notes column
+          }
+        }
+        return col;
+      })
+      .filter((col) => col !== null); // Remove null columns (like notes for Electrical)
 
     worksheet.columns = updatedColumns.map((col) => ({
       header: col.headerName,

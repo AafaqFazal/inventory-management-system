@@ -146,7 +146,7 @@ export default function NotificationsPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <Scrollbar sx={{ height: { xs: 340, sm: 'auto' } }}>
+        <Scrollbar sx={{ height: { xs: 300, sm: 'auto' } }}>
           {loading ? (
             <Box sx={{ p: 2 }}>Loading notifications...</Box>
           ) : (

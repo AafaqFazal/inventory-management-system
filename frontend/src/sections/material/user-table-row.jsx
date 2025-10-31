@@ -75,7 +75,9 @@ export default function UserTableRow({
   };
   const role = sessionStorage.getItem('role') || '';
   const isManager = role.trim().toUpperCase() === 'MANAGER';
-
+  const isSuperAdmin = role.trim().toUpperCase() === 'SUPER_ADMIN';
+  const department = sessionStorage.getItem('department') || '';
+  const isElectrical = department === 'Electrical';
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -84,7 +86,7 @@ export default function UserTableRow({
         </TableCell>
 
         <TableCell>{code}</TableCell>
-        <TableCell>{name}</TableCell>
+        {!isElectrical && <TableCell>{name}</TableCell>}
         {/* <TableCell>{warehouseId}</TableCell> */}
         <TableCell>{description}</TableCell>
         <TableCell>{isActive ? 'Active' : 'Deactive'}</TableCell>
@@ -92,7 +94,7 @@ export default function UserTableRow({
         <TableCell>{createdAt}</TableCell>
 
         <TableCell align="right">
-          {!isManager && (
+          {!(isManager || isSuperAdmin) && (
             <IconButton onClick={handleOpenMenu}>
               <Iconify icon="eva:more-vertical-fill" />
             </IconButton>
@@ -101,8 +103,8 @@ export default function UserTableRow({
       </TableRow>
 
       <Popover open={!!open} anchorEl={open} onClose={handleCloseMenu}>
-        <MenuItem onClick={handleOpenEditModal}>
-          <Iconify icon="solar:pen-bold" sx={{ mr: 1 }} />
+        <MenuItem sx={{ color: 'rgb(74,115,15,0.9)' }} onClick={handleOpenEditModal}>
+          <Iconify icon="solar:pen-bold" sx={{ mr: 1, color: 'rgb(74,115,15,0.9)' }} />
           Edit
         </MenuItem>
         <MenuItem onClick={handleOpenDeleteModal} sx={{ color: 'error.main' }}>
